@@ -1,0 +1,3 @@
+AQUI IMPLEMENTAR BDD Y DEPENDENCIAS RELACIONADAS A ELLO
+- crear directorio pgadmin para postgres
+- crear directorio mongo para mongo

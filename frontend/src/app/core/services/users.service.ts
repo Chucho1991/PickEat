@@ -33,10 +33,12 @@ export class UsersService {
         httpParams = httpParams.set(key, value.toString());
       }
     });
+    console.info('[UsersService] GET /users', { params });
     return this.http.get<UserPage>(`${environment.apiUrl}/users`, { params: httpParams });
   }
 
   getById(id: string) {
+    console.info('[UsersService] GET /users/:id', { id });
     return this.http.get<UserDto>(`${environment.apiUrl}/users/${id}`);
   }
 
@@ -48,6 +50,14 @@ export class UsersService {
     confirmPassword: string;
     rol: string;
   }) {
+    console.info('[UsersService] POST /users', {
+      nombres: payload.nombres,
+      correo: payload.correo,
+      username: payload.username,
+      rol: payload.rol,
+      passwordProvided: Boolean(payload.password),
+      confirmPasswordProvided: Boolean(payload.confirmPassword)
+    });
     return this.http.post<UserDto>(`${environment.apiUrl}/users`, payload);
   }
 
@@ -58,22 +68,27 @@ export class UsersService {
     rol: string;
     activo: boolean;
   }) {
+    console.info('[UsersService] PUT /users/:id', { id, ...payload });
     return this.http.put<UserDto>(`${environment.apiUrl}/users/${id}`, payload);
   }
 
   softDelete(id: string) {
+    console.info('[UsersService] POST /users/:id/soft-delete', { id });
     return this.http.post<UserDto>(`${environment.apiUrl}/users/${id}/soft-delete`, {});
   }
 
   restore(id: string) {
+    console.info('[UsersService] POST /users/:id/restore', { id });
     return this.http.post<UserDto>(`${environment.apiUrl}/users/${id}/restore`, {});
   }
 
   delete(id: string) {
+    console.info('[UsersService] DELETE /users/:id', { id });
     return this.http.delete<void>(`${environment.apiUrl}/users/${id}`);
   }
 
   getMe() {
+    console.info('[UsersService] GET /users/me');
     return this.http.get<UserDto>(`${environment.apiUrl}/users/me`);
   }
 
@@ -84,6 +99,13 @@ export class UsersService {
     password?: string;
     confirmPassword?: string;
   }) {
+    console.info('[UsersService] PUT /users/me', {
+      nombres: payload.nombres,
+      correo: payload.correo,
+      username: payload.username,
+      passwordProvided: Boolean(payload.password),
+      confirmPasswordProvided: Boolean(payload.confirmPassword)
+    });
     return this.http.put<UserDto>(`${environment.apiUrl}/users/me`, payload);
   }
 }

@@ -10,6 +10,8 @@ import com.pickeat.domain.Role;
 import com.pickeat.domain.User;
 import com.pickeat.ports.in.*;
 import jakarta.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -21,6 +23,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/users")
 public class UsersController {
+    private static final Logger logger = LoggerFactory.getLogger(UsersController.class);
     private final CreateUserUseCase createUserUseCase;
     private final UpdateUserUseCase updateUserUseCase;
     private final SoftDeleteUserUseCase softDeleteUserUseCase;
@@ -54,6 +57,11 @@ public class UsersController {
     @PostMapping
     @PreAuthorize("hasAnyRole('SUPERADMINISTRADOR','ADMINISTRADOR')")
     public ResponseEntity<UserResponse> create(@Valid @RequestBody UserCreateRequest request) {
+        logger.info("POST /users - creando usuario username={}, correo={}, rol={}, actor={}",
+                request.getUsername(),
+                request.getCorreo(),
+                request.getRol(),
+                SecurityUtils.currentUsername());
         User user = createUserUseCase.create(
                 UserRestMapper.fromCreate(request),
                 request.getPassword(),
@@ -70,6 +78,12 @@ public class UsersController {
                                                    @RequestParam(required = false) Boolean activo,
                                                    @RequestParam(required = false) Boolean deleted,
                                                    Pageable pageable) {
+        logger.info("GET /users - listando usuarios rol={}, activo={}, deleted={}, page={}, size={}",
+                rol,
+                activo,
+                deleted,
+                pageable.getPageNumber(),
+                pageable.getPageSize());
         Role role = rol != null && !rol.isBlank() ? Role.from(rol) : null;
         Page<UserResponse> page = listUsersUseCase.list(role, activo, deleted, pageable)
                 .map(UserRestMapper::toResponse);
@@ -79,6 +93,7 @@ public class UsersController {
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('SUPERADMINISTRADOR','ADMINISTRADOR')")
     public ResponseEntity<UserResponse> getById(@PathVariable UUID id) {
+        logger.info("GET /users/{} - obteniendo usuario", id);
         return ResponseEntity.ok(UserRestMapper.toResponse(getUserUseCase.getById(id)));
     }
 
@@ -86,6 +101,13 @@ public class UsersController {
     @PreAuthorize("hasAnyRole('SUPERADMINISTRADOR','ADMINISTRADOR')")
     public ResponseEntity<UserResponse> update(@PathVariable UUID id,
                                                @Valid @RequestBody UserUpdateRequest request) {
+        logger.info("PUT /users/{} - actualizando usuario username={}, correo={}, rol={}, activo={}, actor={}",
+                id,
+                request.getUsername(),
+                request.getCorreo(),
+                request.getRol(),
+                request.getActivo(),
+                SecurityUtils.currentUsername());
         User update = UserRestMapper.fromUpdate(request);
         User saved = updateUserUseCase.update(id, update, SecurityUtils.currentUsername(), SecurityUtils.currentRole());
         return ResponseEntity.ok(UserRestMapper.toResponse(saved));
@@ -94,6 +116,7 @@ public class UsersController {
     @PostMapping("/{id}/soft-delete")
     @PreAuthorize("hasAnyRole('SUPERADMINISTRADOR','ADMINISTRADOR')")
     public ResponseEntity<UserResponse> softDelete(@PathVariable UUID id) {
+        logger.info("POST /users/{}/soft-delete - eliminando usuario actor={}", id, SecurityUtils.currentUsername());
         User saved = softDeleteUserUseCase.softDelete(id, SecurityUtils.currentUsername(), SecurityUtils.currentRole());
         return ResponseEntity.ok(UserRestMapper.toResponse(saved));
     }
@@ -101,6 +124,7 @@ public class UsersController {
     @PostMapping("/{id}/restore")
     @PreAuthorize("hasAnyRole('SUPERADMINISTRADOR','ADMINISTRADOR')")
     public ResponseEntity<UserResponse> restore(@PathVariable UUID id) {
+        logger.info("POST /users/{}/restore - restaurando usuario actor={}", id, SecurityUtils.currentUsername());
         User saved = restoreUserUseCase.restore(id, SecurityUtils.currentUsername(), SecurityUtils.currentRole());
         return ResponseEntity.ok(UserRestMapper.toResponse(saved));
     }
@@ -108,18 +132,25 @@ public class UsersController {
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('SUPERADMINISTRADOR')")
     public ResponseEntity<Void> delete(@PathVariable UUID id) {
+        logger.info("DELETE /users/{} - eliminando usuario actor={}", id, SecurityUtils.currentUsername());
         deleteUserUseCase.delete(id, SecurityUtils.currentUsername(), SecurityUtils.currentRole());
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/me")
     public ResponseEntity<UserResponse> getMe() {
+        logger.info("GET /users/me - obteniendo perfil usuario={}", SecurityUtils.currentUsername());
         User user = getMeUseCase.getMe(SecurityUtils.currentUsername());
         return ResponseEntity.ok(UserRestMapper.toResponse(user));
     }
 
     @PutMapping("/me")
     public ResponseEntity<UserResponse> updateMe(@Valid @RequestBody UserMeUpdateRequest request) {
+        logger.info("PUT /users/me - actualizando perfil usuario={}, username={}, correo={}, passwordProvided={}",
+                SecurityUtils.currentUsername(),
+                request.getUsername(),
+                request.getCorreo(),
+                request.getPassword() != null && !request.getPassword().isBlank());
         User current = getMeUseCase.getMe(SecurityUtils.currentUsername());
         User update = UserRestMapper.fromMeUpdate(request, current.getRol(), current.isActivo(), current.isDeleted());
         User saved = updateMeUseCase.updateMe(current.getUsername(), update, request.getPassword(), request.getConfirmPassword());

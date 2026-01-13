@@ -3,6 +3,7 @@
 - No usar entidades JPA en domain, siempre mapear.
 - DTOs solo en adapters/in.
 - Validar entrada con `jakarta.validation`.
+- Documentar cada método con Javadoc en Java y con Compodoc en Angular.
 
 # Cómo agregar un nuevo módulo (plantilla hexagonal)
 1. **Domain**: crear entidad/enum en `backend/src/main/java/com/pickeat/domain`.

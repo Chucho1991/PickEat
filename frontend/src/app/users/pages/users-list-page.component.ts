@@ -1,8 +1,5 @@
 import { Component, inject, OnInit } from '@angular/core';
-import { MatTableModule } from '@angular/material/table';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
+import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { UsersService, UserDto } from '../../core/services/users.service';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
@@ -10,86 +7,129 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 @Component({
   selector: 'app-users-list-page',
   standalone: true,
-  imports: [MatTableModule, MatButtonModule, MatIconModule, MatPaginatorModule, RouterLink, MatSnackBarModule],
+  imports: [CommonModule, RouterLink, MatSnackBarModule],
   template: `
     <div class="page-header">
-      <h2 class="page-title">Usuarios</h2>
-      <a mat-raised-button color="primary" routerLink="/users/new">Nuevo usuario</a>
+      <div>
+        <h2 class="page-title">Usuarios</h2>
+        <p class="page-subtitle">Gestiona el equipo y sus permisos.</p>
+      </div>
+      <a class="btn btn-primary" routerLink="/users/new">Nuevo usuario</a>
     </div>
-    <table mat-table [dataSource]="users" class="mat-elevation-z1">
-      <ng-container matColumnDef="nombres">
-        <th mat-header-cell *matHeaderCellDef>Nombre</th>
-        <td mat-cell *matCellDef="let user">{{ user.nombres }}</td>
-      </ng-container>
-      <ng-container matColumnDef="username">
-        <th mat-header-cell *matHeaderCellDef>Username</th>
-        <td mat-cell *matCellDef="let user">{{ user.username }}</td>
-      </ng-container>
-      <ng-container matColumnDef="correo">
-        <th mat-header-cell *matHeaderCellDef>Correo</th>
-        <td mat-cell *matCellDef="let user">{{ user.correo }}</td>
-      </ng-container>
-      <ng-container matColumnDef="rol">
-        <th mat-header-cell *matHeaderCellDef>Rol</th>
-        <td mat-cell *matCellDef="let user">{{ user.rol }}</td>
-      </ng-container>
-      <ng-container matColumnDef="estado">
-        <th mat-header-cell *matHeaderCellDef>Estado</th>
-        <td mat-cell *matCellDef="let user">{{ user.activo ? 'Activo' : 'Inactivo' }}</td>
-      </ng-container>
-      <ng-container matColumnDef="acciones">
-        <th mat-header-cell *matHeaderCellDef>Acciones</th>
-        <td mat-cell *matCellDef="let user">
-          <a mat-icon-button color="primary" [routerLink]="['/users', user.id]" aria-label="Ver">
-            <mat-icon>visibility</mat-icon>
-          </a>
-          <a mat-icon-button color="accent" [routerLink]="['/users', user.id, 'edit']" aria-label="Editar">
-            <mat-icon>edit</mat-icon>
-          </a>
-          <button mat-icon-button color="warn" (click)="toggleDelete(user)">
-            <mat-icon>{{ user.deleted ? 'restore' : 'delete' }}</mat-icon>
-          </button>
-        </td>
-      </ng-container>
 
-      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-      <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
-    </table>
-    <mat-paginator [length]="total" [pageSize]="pageSize" (page)="onPage($event)"></mat-paginator>
-  `,
-  styles: [
-    `
-      .page-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 16px;
-      }
-      table {
-        width: 100%;
-        margin-bottom: 12px;
-        background: white;
-      }
-    `
-  ]
+    <div class="card">
+      <div class="table-toolbar">
+        <span class="table-title">Listado</span>
+        <div class="table-actions">
+          <label class="select">
+            <span>Mostrar</span>
+            <select [value]="pageSize" (change)="onPageSizeChange($event)">
+              <option *ngFor="let size of pageSizes" [value]="size">{{ size }}</option>
+            </select>
+          </label>
+        </div>
+      </div>
+
+      <div class="table-wrapper">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Usuario</th>
+              <th>Correo</th>
+              <th>Rol</th>
+              <th>Estado</th>
+              <th class="text-right">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let user of users">
+              <td>
+                <div class="cell-main">
+                  <span class="avatar">{{ initials(user.nombres) }}</span>
+                  <div>
+                    <p class="cell-title">{{ user.nombres }}</p>
+                    <p class="cell-subtitle">ID {{ user.id | slice:0:8 }}</p>
+                  </div>
+                </div>
+              </td>
+              <td>{{ user.username }}</td>
+              <td>{{ user.correo }}</td>
+              <td><span class="badge badge-info">{{ user.rol }}</span></td>
+              <td>
+                <span class="badge" [class.badge-success]="user.activo" [class.badge-muted]="!user.activo">
+                  {{ user.activo ? 'Activo' : 'Inactivo' }}
+                </span>
+              </td>
+              <td class="text-right">
+                <a class="btn btn-ghost btn-sm" [routerLink]="['/users', user.id]">Ver</a>
+                <a class="btn btn-ghost btn-sm" [routerLink]="['/users', user.id, 'edit']">Editar</a>
+                <button class="btn btn-ghost btn-sm" (click)="toggleDelete(user)">
+                  {{ user.deleted ? 'Restaurar' : 'Eliminar' }}
+                </button>
+              </td>
+            </tr>
+            <tr *ngIf="users.length === 0">
+              <td colspan="6">
+                <div class="empty-state">
+                  <p>No hay usuarios para mostrar.</p>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="table-footer">
+        <span>Mostrando {{ rangeStart }} - {{ rangeEnd }} de {{ total }}</span>
+        <div class="pager">
+          <button class="btn btn-ghost btn-sm" (click)="goPrev()" [disabled]="pageIndex === 0">Anterior</button>
+          <button class="btn btn-ghost btn-sm" (click)="goNext()" [disabled]="rangeEnd >= total">Siguiente</button>
+        </div>
+      </div>
+    </div>
+  `
 })
 export class UsersListPageComponent implements OnInit {
   private usersService = inject(UsersService);
   private snackBar = inject(MatSnackBar);
   users: UserDto[] = [];
-  displayedColumns = ['nombres', 'username', 'correo', 'rol', 'estado', 'acciones'];
   total = 0;
   pageSize = 10;
   pageIndex = 0;
+  pageSizes = [5, 10, 20, 50];
 
   ngOnInit() {
     this.loadUsers();
   }
 
-  onPage(event: PageEvent) {
-    this.pageSize = event.pageSize;
-    this.pageIndex = event.pageIndex;
+  get rangeStart() {
+    return this.total === 0 ? 0 : this.pageIndex * this.pageSize + 1;
+  }
+
+  get rangeEnd() {
+    return Math.min(this.total, (this.pageIndex + 1) * this.pageSize);
+  }
+
+  onPageSizeChange(event: Event) {
+    const target = event.target as HTMLSelectElement;
+    this.pageSize = Number(target.value);
+    this.pageIndex = 0;
     this.loadUsers();
+  }
+
+  goPrev() {
+    if (this.pageIndex > 0) {
+      this.pageIndex -= 1;
+      this.loadUsers();
+    }
+  }
+
+  goNext() {
+    if (this.rangeEnd < this.total) {
+      this.pageIndex += 1;
+      this.loadUsers();
+    }
   }
 
   loadUsers() {
@@ -111,5 +151,15 @@ export class UsersListPageComponent implements OnInit {
       },
       error: () => this.snackBar.open('No se pudo actualizar el usuario', 'Cerrar', { duration: 3000 })
     });
+  }
+
+  initials(name: string) {
+    return name
+      .split(' ')
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0])
+      .join('')
+      .toUpperCase();
   }
 }

@@ -40,13 +40,13 @@ export const routes: Routes = [
     path: 'menu',
     component: PlaceholderPageComponent,
     canActivate: [AuthGuard],
-    data: { title: 'Menú' }
+    data: { title: 'Menu' }
   },
   {
     path: 'ordenes',
     component: PlaceholderPageComponent,
     canActivate: [AuthGuard],
-    data: { title: 'Órdenes' }
+    data: { title: 'Ordenes' }
   },
   {
     path: 'despachador',

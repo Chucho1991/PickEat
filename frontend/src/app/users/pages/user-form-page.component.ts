@@ -1,75 +1,66 @@
 import { Component, inject, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { UsersService } from '../../core/services/users.service';
 
 @Component({
   selector: 'app-user-form-page',
   standalone: true,
-  imports: [
-    ReactiveFormsModule,
-    MatButtonModule,
-    MatCardModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatSelectModule,
-    MatSnackBarModule
-  ],
+  imports: [CommonModule, ReactiveFormsModule, MatSnackBarModule],
   template: `
-    <h2 class="page-title">{{ isEdit ? 'Editar usuario' : 'Nuevo usuario' }}</h2>
-    <mat-card class="card">
-      <form [formGroup]="form" (ngSubmit)="onSubmit()">
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Nombres</mat-label>
-          <input matInput formControlName="nombres" />
-        </mat-form-field>
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Correo</mat-label>
-          <input matInput formControlName="correo" />
-        </mat-form-field>
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Username</mat-label>
-          <input matInput formControlName="username" />
-        </mat-form-field>
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Rol</mat-label>
-          <mat-select formControlName="rol">
-            <mat-option *ngFor="let rol of roles" [value]="rol">{{ rol }}</mat-option>
-          </mat-select>
-        </mat-form-field>
-        <mat-form-field appearance="outline" class="full-width" *ngIf="!isEdit">
-          <mat-label>Contraseña</mat-label>
-          <input matInput type="password" formControlName="password" />
-        </mat-form-field>
-        <mat-form-field appearance="outline" class="full-width" *ngIf="!isEdit">
-          <mat-label>Confirmar contraseña</mat-label>
-          <input matInput type="password" formControlName="confirmPassword" />
-        </mat-form-field>
-        <mat-form-field appearance="outline" class="full-width" *ngIf="isEdit">
-          <mat-label>Activo</mat-label>
-          <mat-select formControlName="activo">
-            <mat-option [value]="true">Sí</mat-option>
-            <mat-option [value]="false">No</mat-option>
-          </mat-select>
-        </mat-form-field>
-        <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid">Guardar</button>
-        <button mat-button type="button" (click)="back()">Cancelar</button>
+    <div class="page-header">
+      <div>
+        <h2 class="page-title">{{ isEdit ? 'Editar usuario' : 'Nuevo usuario' }}</h2>
+        <p class="page-subtitle">Completa la informacion del usuario.</p>
+      </div>
+      <button class="btn btn-ghost" type="button" (click)="back()">Volver</button>
+    </div>
+
+    <div class="card">
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" class="form-grid">
+        <label class="field">
+          <span>Nombres</span>
+          <input type="text" formControlName="nombres" />
+        </label>
+        <label class="field">
+          <span>Correo</span>
+          <input type="email" formControlName="correo" />
+        </label>
+        <label class="field">
+          <span>Username</span>
+          <input type="text" formControlName="username" />
+        </label>
+        <label class="field">
+          <span>Rol</span>
+          <select formControlName="rol">
+            <option value="" disabled>Selecciona un rol</option>
+            <option *ngFor="let rol of roles" [value]="rol">{{ rol }}</option>
+          </select>
+        </label>
+        <label class="field" *ngIf="!isEdit">
+          <span>Contrasena</span>
+          <input type="password" formControlName="password" />
+        </label>
+        <label class="field" *ngIf="!isEdit">
+          <span>Confirmar contrasena</span>
+          <input type="password" formControlName="confirmPassword" />
+        </label>
+        <label class="field" *ngIf="isEdit">
+          <span>Activo</span>
+          <select formControlName="activo">
+            <option [value]="true">Si</option>
+            <option [value]="false">No</option>
+          </select>
+        </label>
+        <div class="form-actions">
+          <button class="btn btn-primary" type="submit" [disabled]="form.invalid">Guardar</button>
+          <button class="btn btn-ghost" type="button" (click)="back()">Cancelar</button>
+        </div>
       </form>
-    </mat-card>
-  `,
-  styles: [
-    `
-      .full-width {
-        width: 100%;
-      }
-    `
-  ]
+    </div>
+  `
 })
 export class UserFormPageComponent implements OnInit {
   private formBuilder = inject(FormBuilder);

@@ -1,24 +1,53 @@
 import { Component, inject, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { MatCardModule } from '@angular/material/card';
-import { MatButtonModule } from '@angular/material/button';
 import { UsersService, UserDto } from '../../core/services/users.service';
 
 @Component({
   selector: 'app-user-detail-page',
   standalone: true,
-  imports: [MatCardModule, MatButtonModule, RouterLink],
+  imports: [CommonModule, RouterLink],
   template: `
-    <h2 class="page-title">Detalle de usuario</h2>
-    <mat-card class="card" *ngIf="user">
-      <p><strong>Nombre:</strong> {{ user.nombres }}</p>
-      <p><strong>Correo:</strong> {{ user.correo }}</p>
-      <p><strong>Username:</strong> {{ user.username }}</p>
-      <p><strong>Rol:</strong> {{ user.rol }}</p>
-      <p><strong>Activo:</strong> {{ user.activo ? 'Sí' : 'No' }}</p>
-      <p><strong>Eliminado:</strong> {{ user.deleted ? 'Sí' : 'No' }}</p>
-      <button mat-raised-button color="primary" routerLink="/users">Volver</button>
-    </mat-card>
+    <div class="page-header">
+      <div>
+        <h2 class="page-title">Detalle de usuario</h2>
+        <p class="page-subtitle">Informacion y estado de la cuenta.</p>
+      </div>
+      <a class="btn btn-ghost" routerLink="/users">Volver</a>
+    </div>
+
+    <div class="card" *ngIf="user">
+      <div class="detail-grid">
+        <div>
+          <p class="detail-label">Nombre</p>
+          <p class="detail-value">{{ user.nombres }}</p>
+        </div>
+        <div>
+          <p class="detail-label">Correo</p>
+          <p class="detail-value">{{ user.correo }}</p>
+        </div>
+        <div>
+          <p class="detail-label">Usuario</p>
+          <p class="detail-value">{{ user.username }}</p>
+        </div>
+        <div>
+          <p class="detail-label">Rol</p>
+          <span class="badge badge-info">{{ user.rol }}</span>
+        </div>
+        <div>
+          <p class="detail-label">Activo</p>
+          <span class="badge" [class.badge-success]="user.activo" [class.badge-muted]="!user.activo">
+            {{ user.activo ? 'Si' : 'No' }}
+          </span>
+        </div>
+        <div>
+          <p class="detail-label">Eliminado</p>
+          <span class="badge" [class.badge-warning]="user.deleted" [class.badge-muted]="!user.deleted">
+            {{ user.deleted ? 'Si' : 'No' }}
+          </span>
+        </div>
+      </div>
+    </div>
   `
 })
 export class UserDetailPageComponent implements OnInit {

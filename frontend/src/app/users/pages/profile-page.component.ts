@@ -1,51 +1,48 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { UsersService } from '../../core/services/users.service';
 
 @Component({
   selector: 'app-profile-page',
   standalone: true,
-  imports: [ReactiveFormsModule, MatButtonModule, MatCardModule, MatFormFieldModule, MatInputModule, MatSnackBarModule],
+  imports: [ReactiveFormsModule, MatSnackBarModule],
   template: `
-    <h2 class="page-title">Mi perfil</h2>
-    <mat-card class="card">
-      <form [formGroup]="form" (ngSubmit)="onSubmit()">
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Nombres</mat-label>
-          <input matInput formControlName="nombres" />
-        </mat-form-field>
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Correo</mat-label>
-          <input matInput formControlName="correo" />
-        </mat-form-field>
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Username</mat-label>
-          <input matInput formControlName="username" />
-        </mat-form-field>
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Nueva contraseña</mat-label>
-          <input matInput type="password" formControlName="password" />
-        </mat-form-field>
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Confirmar contraseña</mat-label>
-          <input matInput type="password" formControlName="confirmPassword" />
-        </mat-form-field>
-        <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid">Guardar cambios</button>
+    <div class="page-header">
+      <div>
+        <h2 class="page-title">Mi perfil</h2>
+        <p class="page-subtitle">Actualiza tu informacion personal.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" class="form-grid">
+        <label class="field">
+          <span>Nombres</span>
+          <input type="text" formControlName="nombres" />
+        </label>
+        <label class="field">
+          <span>Correo</span>
+          <input type="email" formControlName="correo" />
+        </label>
+        <label class="field">
+          <span>Username</span>
+          <input type="text" formControlName="username" />
+        </label>
+        <label class="field">
+          <span>Nueva contrasena</span>
+          <input type="password" formControlName="password" />
+        </label>
+        <label class="field">
+          <span>Confirmar contrasena</span>
+          <input type="password" formControlName="confirmPassword" />
+        </label>
+        <div class="form-actions">
+          <button class="btn btn-primary" type="submit" [disabled]="form.invalid">Guardar cambios</button>
+        </div>
       </form>
-    </mat-card>
-  `,
-  styles: [
-    `
-      .full-width {
-        width: 100%;
-      }
-    `
-  ]
+    </div>
+  `
 })
 export class ProfilePageComponent implements OnInit {
   private formBuilder = inject(FormBuilder);

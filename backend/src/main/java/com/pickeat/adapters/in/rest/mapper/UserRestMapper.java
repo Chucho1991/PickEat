@@ -14,7 +14,7 @@ public class UserRestMapper {
                 request.getCorreo(),
                 request.getUsername(),
                 null,
-                Role.valueOf(request.getRol())
+                Role.from(request.getRol())
         );
     }
 
@@ -24,7 +24,7 @@ public class UserRestMapper {
                 request.getCorreo(),
                 request.getUsername(),
                 null,
-                Role.valueOf(request.getRol()),
+                Role.from(request.getRol()),
                 request.getActivo(),
                 false,
                 null,

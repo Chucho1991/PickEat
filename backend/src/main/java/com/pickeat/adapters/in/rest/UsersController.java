@@ -70,7 +70,7 @@ public class UsersController {
                                                    @RequestParam(required = false) Boolean activo,
                                                    @RequestParam(required = false) Boolean deleted,
                                                    Pageable pageable) {
-        Role role = rol != null ? Role.valueOf(rol) : null;
+        Role role = rol != null && !rol.isBlank() ? Role.from(rol) : null;
         Page<UserResponse> page = listUsersUseCase.list(role, activo, deleted, pageable)
                 .map(UserRestMapper::toResponse);
         return ResponseEntity.ok(page);

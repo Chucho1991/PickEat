@@ -12,7 +12,7 @@ public class UserUpdateRequest {
     private String correo;
     @NotBlank
     private String username;
-    @NotNull
+    @NotBlank
     private String rol;
     @NotNull
     private Boolean activo;

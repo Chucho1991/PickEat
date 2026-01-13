@@ -1,0 +1,5 @@
+ALTER TABLE api_audit_log
+    ALTER COLUMN id TYPE BIGINT;
+
+ALTER TABLE action_audit_log
+    ALTER COLUMN id TYPE BIGINT;

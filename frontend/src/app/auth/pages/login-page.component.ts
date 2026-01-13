@@ -253,7 +253,12 @@ export class LoginPageComponent {
         this.router.navigate(['/dashboard']);
       },
       error: (error) => {
-        this.snackBar.open(error?.error?.error || 'No se pudo iniciar sesion', 'Cerrar', { duration: 3000 });
+        this.snackBar.open(error?.error?.error || 'No se pudo iniciar sesion', 'Cerrar', {
+          duration: 3000,
+          horizontalPosition: 'center',
+          verticalPosition: 'top',
+          panelClass: ['snack-top-center']
+        });
       }
     });
   }

@@ -29,6 +29,33 @@ body {
   color: var(--text);
 }
 
+.mat-mdc-snack-bar-container .mdc-snackbar__surface {
+  margin-top: 16px;
+  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.18);
+  border-radius: 12px;
+}
+
+.snack-top-center.mat-mdc-snack-bar-container {
+  position: fixed !important;
+  top: 20px !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  width: auto !important;
+  max-width: calc(100% - 32px) !important;
+  margin: 0 !important;
+}
+
+.cdk-overlay-container {
+  position: fixed;
+  z-index: 10000;
+  inset: 0;
+  pointer-events: none;
+}
+
+.cdk-overlay-container .cdk-overlay-pane {
+  pointer-events: auto;
+}
+
 a {
   color: inherit;
 }
@@ -80,6 +107,10 @@ a {
   transition: background 0.2s ease, color 0.2s ease;
 }
 
+.nav-label {
+  display: inline-block;
+}
+
 .nav a.active,
 .nav a:hover {
   background: rgba(255, 255, 255, 0.12);
@@ -91,6 +122,26 @@ a {
   width: 100%;
   color: #ffffff;
   border-color: rgba(255, 255, 255, 0.2);
+}
+
+.app-shell.sidebar-collapsed .sidebar {
+  width: 88px;
+}
+
+.app-shell.sidebar-collapsed .brand-name {
+  display: none;
+}
+
+.app-shell.sidebar-collapsed .nav a {
+  text-align: center;
+}
+
+.app-shell.sidebar-collapsed .nav-label {
+  display: none;
+}
+
+.app-shell.sidebar-collapsed .sidebar-logout {
+  padding: 10px 0;
 }
 
 .app-body {
@@ -106,6 +157,17 @@ a {
   padding: 24px 36px;
   background: var(--panel);
   border-bottom: 1px solid var(--border);
+}
+
+.topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.menu-icon {
+  font-size: 18px;
+  line-height: 1;
 }
 
 .topbar-title {

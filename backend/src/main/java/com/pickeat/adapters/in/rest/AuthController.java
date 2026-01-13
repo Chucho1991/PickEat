@@ -6,6 +6,8 @@ import com.pickeat.config.JwtService;
 import com.pickeat.domain.User;
 import com.pickeat.ports.in.LoginUseCase;
 import jakarta.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -17,6 +19,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
+    private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
     private final LoginUseCase loginUseCase;
     private final JwtService jwtService;
 
@@ -27,6 +30,7 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody AuthLoginRequest request) {
+        logger.info("POST /auth/login - intento login usernameOrEmail={}", request.getUsernameOrEmail());
         User user = loginUseCase.login(request.getUsernameOrEmail(), request.getPassword());
         String token = jwtService.generateToken(user.getUsername(), Map.of(
                 "role", user.getRol().name(),

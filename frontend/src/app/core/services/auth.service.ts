@@ -27,6 +27,10 @@ export class AuthService {
   constructor(private http: HttpClient, private router: Router) {}
 
   login(usernameOrEmail: string, password: string) {
+    console.info('[AuthService] POST /auth/login', {
+      usernameOrEmail,
+      passwordProvided: Boolean(password)
+    });
     return this.http.post<AuthResponse>(`${environment.apiUrl}/auth/login`, {
       usernameOrEmail,
       password

@@ -8,9 +8,17 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
 
+/**
+ * Controlador REST para métricas del dashboard.
+ */
 @RestController
 @RequestMapping("/dashboard")
 public class DashboardController {
+    /**
+     * Entrega métricas de estado del sistema.
+     *
+     * @return mapa con indicadores básicos.
+     */
     @GetMapping
     @PreAuthorize("hasAnyRole('SUPERADMINISTRADOR','ADMINISTRADOR')")
     public ResponseEntity<Map<String, Object>> dashboard() {

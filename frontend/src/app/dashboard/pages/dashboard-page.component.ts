@@ -1,5 +1,8 @@
 import { Component } from '@angular/core';
 
+/**
+ * Página principal del panel administrativo.
+ */
 @Component({
   selector: 'app-dashboard-page',
   standalone: true,

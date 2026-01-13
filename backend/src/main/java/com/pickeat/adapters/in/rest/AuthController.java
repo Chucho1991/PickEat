@@ -16,6 +16,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
 
+/**
+ * Controlador REST para operaciones de autenticación.
+ */
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
@@ -23,11 +26,23 @@ public class AuthController {
     private final LoginUseCase loginUseCase;
     private final JwtService jwtService;
 
+    /**
+     * Crea un controlador de autenticación con los casos de uso y utilidades necesarias.
+     *
+     * @param loginUseCase caso de uso para autenticación.
+     * @param jwtService servicio para emitir tokens JWT.
+     */
     public AuthController(LoginUseCase loginUseCase, JwtService jwtService) {
         this.loginUseCase = loginUseCase;
         this.jwtService = jwtService;
     }
 
+    /**
+     * Autentica al usuario y entrega un token JWT junto a datos básicos del perfil.
+     *
+     * @param request credenciales de acceso.
+     * @return respuesta con el token y datos del usuario.
+     */
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody AuthLoginRequest request) {
         logger.info("POST /auth/login - intento login usernameOrEmail={}", request.getUsernameOrEmail());

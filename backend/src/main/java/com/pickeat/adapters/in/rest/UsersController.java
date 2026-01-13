@@ -20,6 +20,9 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
+/**
+ * Controlador REST para la administración de usuarios.
+ */
 @RestController
 @RequestMapping("/users")
 public class UsersController {
@@ -34,6 +37,19 @@ public class UsersController {
     private final GetMeUseCase getMeUseCase;
     private final UpdateMeUseCase updateMeUseCase;
 
+    /**
+     * Construye el controlador con los casos de uso requeridos.
+     *
+     * @param createUserUseCase caso de uso para creación de usuarios.
+     * @param updateUserUseCase caso de uso para actualización de usuarios.
+     * @param softDeleteUserUseCase caso de uso para eliminación lógica.
+     * @param restoreUserUseCase caso de uso para restaurar usuarios.
+     * @param deleteUserUseCase caso de uso para eliminación definitiva.
+     * @param listUsersUseCase caso de uso para listar usuarios.
+     * @param getUserUseCase caso de uso para obtener usuario por id.
+     * @param getMeUseCase caso de uso para obtener perfil del usuario autenticado.
+     * @param updateMeUseCase caso de uso para actualizar perfil del usuario autenticado.
+     */
     public UsersController(CreateUserUseCase createUserUseCase,
                            UpdateUserUseCase updateUserUseCase,
                            SoftDeleteUserUseCase softDeleteUserUseCase,
@@ -54,6 +70,12 @@ public class UsersController {
         this.updateMeUseCase = updateMeUseCase;
     }
 
+    /**
+     * Crea un usuario nuevo.
+     *
+     * @param request datos de creación del usuario.
+     * @return respuesta con el usuario creado.
+     */
     @PostMapping
     @PreAuthorize("hasAnyRole('SUPERADMINISTRADOR','ADMINISTRADOR')")
     public ResponseEntity<UserResponse> create(@Valid @RequestBody UserCreateRequest request) {
@@ -72,6 +94,15 @@ public class UsersController {
         return ResponseEntity.ok(UserRestMapper.toResponse(user));
     }
 
+    /**
+     * Lista usuarios según filtros y paginación.
+     *
+     * @param rol rol opcional para filtrar.
+     * @param activo estado activo opcional para filtrar.
+     * @param deleted estado eliminado opcional para filtrar.
+     * @param pageable información de paginación.
+     * @return página de usuarios.
+     */
     @GetMapping
     @PreAuthorize("hasAnyRole('SUPERADMINISTRADOR','ADMINISTRADOR')")
     public ResponseEntity<Page<UserResponse>> list(@RequestParam(required = false) String rol,
@@ -90,6 +121,12 @@ public class UsersController {
         return ResponseEntity.ok(page);
     }
 
+    /**
+     * Obtiene un usuario por identificador.
+     *
+     * @param id identificador del usuario.
+     * @return respuesta con el usuario encontrado.
+     */
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('SUPERADMINISTRADOR','ADMINISTRADOR')")
     public ResponseEntity<UserResponse> getById(@PathVariable UUID id) {
@@ -97,6 +134,13 @@ public class UsersController {
         return ResponseEntity.ok(UserRestMapper.toResponse(getUserUseCase.getById(id)));
     }
 
+    /**
+     * Actualiza los datos de un usuario.
+     *
+     * @param id identificador del usuario.
+     * @param request datos de actualización.
+     * @return respuesta con el usuario actualizado.
+     */
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyRole('SUPERADMINISTRADOR','ADMINISTRADOR')")
     public ResponseEntity<UserResponse> update(@PathVariable UUID id,
@@ -113,6 +157,12 @@ public class UsersController {
         return ResponseEntity.ok(UserRestMapper.toResponse(saved));
     }
 
+    /**
+     * Marca un usuario como eliminado de forma lógica.
+     *
+     * @param id identificador del usuario.
+     * @return respuesta con el usuario actualizado.
+     */
     @PostMapping("/{id}/soft-delete")
     @PreAuthorize("hasAnyRole('SUPERADMINISTRADOR','ADMINISTRADOR')")
     public ResponseEntity<UserResponse> softDelete(@PathVariable UUID id) {
@@ -121,6 +171,12 @@ public class UsersController {
         return ResponseEntity.ok(UserRestMapper.toResponse(saved));
     }
 
+    /**
+     * Restaura un usuario eliminado lógicamente.
+     *
+     * @param id identificador del usuario.
+     * @return respuesta con el usuario restaurado.
+     */
     @PostMapping("/{id}/restore")
     @PreAuthorize("hasAnyRole('SUPERADMINISTRADOR','ADMINISTRADOR')")
     public ResponseEntity<UserResponse> restore(@PathVariable UUID id) {
@@ -129,6 +185,12 @@ public class UsersController {
         return ResponseEntity.ok(UserRestMapper.toResponse(saved));
     }
 
+    /**
+     * Elimina un usuario de forma definitiva.
+     *
+     * @param id identificador del usuario.
+     * @return respuesta sin contenido.
+     */
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('SUPERADMINISTRADOR')")
     public ResponseEntity<Void> delete(@PathVariable UUID id) {
@@ -137,6 +199,11 @@ public class UsersController {
         return ResponseEntity.noContent().build();
     }
 
+    /**
+     * Obtiene el perfil del usuario autenticado.
+     *
+     * @return respuesta con el usuario autenticado.
+     */
     @GetMapping("/me")
     public ResponseEntity<UserResponse> getMe() {
         logger.info("GET /users/me - obteniendo perfil usuario={}", SecurityUtils.currentUsername());
@@ -144,6 +211,12 @@ public class UsersController {
         return ResponseEntity.ok(UserRestMapper.toResponse(user));
     }
 
+    /**
+     * Actualiza el perfil del usuario autenticado.
+     *
+     * @param request datos de actualización del perfil.
+     * @return respuesta con el usuario actualizado.
+     */
     @PutMapping("/me")
     public ResponseEntity<UserResponse> updateMe(@Valid @RequestBody UserMeUpdateRequest request) {
         logger.info("PUT /users/me - actualizando perfil usuario={}, username={}, correo={}, passwordProvided={}",

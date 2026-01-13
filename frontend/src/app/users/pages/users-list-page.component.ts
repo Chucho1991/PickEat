@@ -4,6 +4,9 @@ import { RouterLink } from '@angular/router';
 import { UsersService, UserDto } from '../../core/services/users.service';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 
+/**
+ * Página con el listado de usuarios y acciones principales.
+ */
 @Component({
   selector: 'app-users-list-page',
   standalone: true,
@@ -99,18 +102,32 @@ export class UsersListPageComponent implements OnInit {
   pageIndex = 0;
   pageSizes = [5, 10, 20, 50];
 
+  /**
+   * Carga el listado inicial de usuarios.
+   */
   ngOnInit() {
     this.loadUsers();
   }
 
+  /**
+   * Rango inicial de la paginación actual.
+   */
   get rangeStart() {
     return this.total === 0 ? 0 : this.pageIndex * this.pageSize + 1;
   }
 
+  /**
+   * Rango final de la paginación actual.
+   */
   get rangeEnd() {
     return Math.min(this.total, (this.pageIndex + 1) * this.pageSize);
   }
 
+  /**
+   * Actualiza el tamaño de página y recarga la lista.
+   *
+   * @param event evento del selector.
+   */
   onPageSizeChange(event: Event) {
     const target = event.target as HTMLSelectElement;
     this.pageSize = Number(target.value);
@@ -118,6 +135,9 @@ export class UsersListPageComponent implements OnInit {
     this.loadUsers();
   }
 
+  /**
+   * Retrocede una página en la paginación.
+   */
   goPrev() {
     if (this.pageIndex > 0) {
       this.pageIndex -= 1;
@@ -125,6 +145,9 @@ export class UsersListPageComponent implements OnInit {
     }
   }
 
+  /**
+   * Avanza una página en la paginación.
+   */
   goNext() {
     if (this.rangeEnd < this.total) {
       this.pageIndex += 1;
@@ -132,6 +155,9 @@ export class UsersListPageComponent implements OnInit {
     }
   }
 
+  /**
+   * Solicita los usuarios según el estado actual de paginación.
+   */
   loadUsers() {
     this.usersService.list({ page: this.pageIndex, size: this.pageSize }).subscribe({
       next: (page) => {
@@ -142,6 +168,11 @@ export class UsersListPageComponent implements OnInit {
     });
   }
 
+  /**
+   * Alterna entre eliminar y restaurar un usuario.
+   *
+   * @param user usuario objetivo.
+   */
   toggleDelete(user: UserDto) {
     const action = user.deleted ? this.usersService.restore(user.id) : this.usersService.softDelete(user.id);
     action.subscribe({
@@ -153,6 +184,11 @@ export class UsersListPageComponent implements OnInit {
     });
   }
 
+  /**
+   * Obtiene las iniciales para el avatar.
+   *
+   * @param name nombre completo.
+   */
   initials(name: string) {
     return name
       .split(' ')

@@ -5,6 +5,9 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { UsersService } from '../../core/services/users.service';
 
+/**
+ * Página de formulario para crear o editar usuarios.
+ */
 @Component({
   selector: 'app-user-form-page',
   standalone: true,
@@ -82,6 +85,9 @@ export class UserFormPageComponent implements OnInit {
     activo: [true]
   });
 
+  /**
+   * Inicializa el formulario y carga datos si está en modo edición.
+   */
   ngOnInit() {
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
@@ -101,6 +107,9 @@ export class UserFormPageComponent implements OnInit {
     this.form.setValidators(this.passwordsMatchValidator());
   }
 
+  /**
+   * Envía el formulario para crear o actualizar un usuario.
+   */
   onSubmit() {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
@@ -140,10 +149,16 @@ export class UserFormPageComponent implements OnInit {
     }
   }
 
+  /**
+   * Regresa al listado de usuarios.
+   */
   back() {
     this.router.navigate(['/users']);
   }
 
+  /**
+   * Configura validaciones de contraseña según el modo del formulario.
+   */
   private configurePasswordValidation() {
     const passwordControl = this.form.get('password');
     const confirmControl = this.form.get('confirmPassword');
@@ -158,6 +173,9 @@ export class UserFormPageComponent implements OnInit {
     confirmControl?.updateValueAndValidity();
   }
 
+  /**
+   * Validador para asegurar que las contraseñas coinciden.
+   */
   private passwordsMatchValidator(): ValidatorFn {
     return (group) => {
       if (this.isEdit) {

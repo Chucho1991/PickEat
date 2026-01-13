@@ -3,6 +3,9 @@ import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from './core/services/auth.service';
 
+/**
+ * Componente raíz que administra la navegación y el layout principal.
+ */
 @Component({
   selector: 'app-root',
   standalone: true,
@@ -98,14 +101,23 @@ export class AppComponent {
     return this.authService.getUser()?.rol ?? 'Rol';
   });
 
+  /**
+   * Cierra la sesión del usuario.
+   */
   logout() {
     this.authService.logout();
   }
 
+  /**
+   * Alterna el estado de la barra lateral.
+   */
   toggleSidebar() {
     this.isSidebarCollapsed = !this.isSidebarCollapsed;
   }
 
+  /**
+   * Obtiene las iniciales del usuario autenticado para el avatar.
+   */
   userInitials() {
     const name = this.userName();
     return name

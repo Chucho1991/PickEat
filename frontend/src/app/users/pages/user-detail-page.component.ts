@@ -3,6 +3,9 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { UsersService, UserDto } from '../../core/services/users.service';
 
+/**
+ * Página de detalle de un usuario.
+ */
 @Component({
   selector: 'app-user-detail-page',
   standalone: true,
@@ -55,6 +58,9 @@ export class UserDetailPageComponent implements OnInit {
   private usersService = inject(UsersService);
   user?: UserDto;
 
+  /**
+   * Carga el usuario solicitado desde la ruta.
+   */
   ngOnInit() {
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {

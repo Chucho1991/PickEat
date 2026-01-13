@@ -1,6 +1,9 @@
 import { Component } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 
+/**
+ * Página genérica para secciones en construcción.
+ */
 @Component({
   selector: 'app-placeholder-page',
   standalone: true,
@@ -22,5 +25,10 @@ import { ActivatedRoute } from '@angular/router';
 export class PlaceholderPageComponent {
   title = this.route.snapshot.data['title'] || 'Modulo';
 
+  /**
+   * Crea el componente con acceso a la ruta activa.
+   *
+   * @param route ruta activa para leer metadatos.
+   */
   constructor(private route: ActivatedRoute) {}
 }

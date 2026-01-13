@@ -3,6 +3,9 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { UsersService } from '../../core/services/users.service';
 
+/**
+ * Página para editar el perfil del usuario autenticado.
+ */
 @Component({
   selector: 'app-profile-page',
   standalone: true,
@@ -57,6 +60,9 @@ export class ProfilePageComponent implements OnInit {
     confirmPassword: ['']
   });
 
+  /**
+   * Carga el perfil actual y completa el formulario.
+   */
   ngOnInit() {
     this.usersService.getMe().subscribe(user => {
       this.form.patchValue({
@@ -67,6 +73,9 @@ export class ProfilePageComponent implements OnInit {
     });
   }
 
+  /**
+   * Envía los cambios del perfil al backend.
+   */
   onSubmit() {
     if (this.form.invalid) {
       return;

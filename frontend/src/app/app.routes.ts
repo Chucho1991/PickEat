@@ -9,6 +9,9 @@ import { UserFormPageComponent } from './users/pages/user-form-page.component';
 import { ProfilePageComponent } from './users/pages/profile-page.component';
 import { PlaceholderPageComponent } from './placeholders/pages/placeholder-page.component';
 
+/**
+ * Definición de rutas principales de la aplicación.
+ */
 export const routes: Routes = [
   { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
   { path: 'login', component: LoginPageComponent },

@@ -5,6 +5,9 @@ import { provideAnimations } from '@angular/platform-browser/animations';
 import { routes } from './app.routes';
 import { authInterceptor } from './core/interceptors/auth.interceptor';
 
+/**
+ * Configuración principal de proveedores de la aplicación.
+ */
 export const appConfig: ApplicationConfig = {
   providers: [
     provideRouter(routes),

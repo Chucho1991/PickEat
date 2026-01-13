@@ -4,6 +4,9 @@ import { Router, RouterLink } from '@angular/router';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { AuthService } from '../../core/services/auth.service';
 
+/**
+ * Página de inicio de sesión.
+ */
 @Component({
   selector: 'app-login-page',
   standalone: true,
@@ -242,6 +245,9 @@ export class LoginPageComponent {
     password: ['', Validators.required]
   });
 
+  /**
+   * Envía las credenciales y gestiona el flujo de inicio de sesión.
+   */
   onSubmit() {
     if (this.form.invalid) {
       return;

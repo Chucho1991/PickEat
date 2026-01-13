@@ -1,0 +1,27 @@
+server:
+  port: 8080
+spring:
+  datasource:
+    url: ${POSTGRES_URL:jdbc:postgresql://postgres:5432/pickeat}
+    username: ${POSTGRES_USER:pickeat}
+    password: ${POSTGRES_PASSWORD:pickeat}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: true
+  flyway:
+    enabled: true
+  data:
+    mongodb:
+      uri: ${MONGO_URI:mongodb://mongo:27017/pickeat}
+security:
+  jwt:
+    secret: ${JWT_SECRET:change-me-please-change-me}
+    expiration-minutes: ${JWT_EXPIRATION_MINUTES:480}
+app:
+  audit:
+    max-payload-size: ${AUDIT_MAX_PAYLOAD_SIZE:4000}
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:4200}

@@ -1,6 +1,6 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule, ValidatorFn, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { UsersService } from '../../core/services/users.service';
@@ -97,10 +97,14 @@ export class UserFormPageComponent implements OnInit {
         });
       });
     }
+    this.configurePasswordValidation();
+    this.form.setValidators(this.passwordsMatchValidator());
   }
 
   onSubmit() {
     if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      this.snackBar.open('Completa los campos requeridos', 'Cerrar', { duration: 3000 });
       return;
     }
     const value = this.form.getRawValue();
@@ -138,5 +142,33 @@ export class UserFormPageComponent implements OnInit {
 
   back() {
     this.router.navigate(['/users']);
+  }
+
+  private configurePasswordValidation() {
+    const passwordControl = this.form.get('password');
+    const confirmControl = this.form.get('confirmPassword');
+    if (this.isEdit) {
+      passwordControl?.clearValidators();
+      confirmControl?.clearValidators();
+    } else {
+      passwordControl?.setValidators([Validators.required, Validators.minLength(8)]);
+      confirmControl?.setValidators([Validators.required, Validators.minLength(8)]);
+    }
+    passwordControl?.updateValueAndValidity();
+    confirmControl?.updateValueAndValidity();
+  }
+
+  private passwordsMatchValidator(): ValidatorFn {
+    return (group) => {
+      if (this.isEdit) {
+        return null;
+      }
+      const password = group.get('password')?.value;
+      const confirmPassword = group.get('confirmPassword')?.value;
+      if (!password && !confirmPassword) {
+        return null;
+      }
+      return password === confirmPassword ? null : { passwordMismatch: true };
+    };
   }
 }

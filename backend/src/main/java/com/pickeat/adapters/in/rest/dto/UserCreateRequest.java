@@ -2,7 +2,6 @@ package com.pickeat.adapters.in.rest.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 
 public class UserCreateRequest {
     @NotBlank
@@ -16,7 +15,7 @@ public class UserCreateRequest {
     private String password;
     @NotBlank
     private String confirmPassword;
-    @NotNull
+    @NotBlank
     private String rol;
 
     public String getNombres() {

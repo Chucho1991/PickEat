@@ -28,6 +28,11 @@ docker compose up --build
 - **Usuarios**: completo (auth, CRUD, perfil, soft delete, restore, delete físico con rol SUPERADMINISTRADOR).
 - **Mesas/Menú/Órdenes/Despachador**: rutas placeholder con "Coming soon".
 
+## Gestión de usuarios
+- Solo roles **ADMINISTRADOR** y **SUPERADMINISTRADOR** pueden crear/listar usuarios.
+- En creación de usuarios se requiere contraseña y confirmación (mínimo 8 caracteres).
+- Los roles disponibles: `SUPERADMINISTRADOR`, `ADMINISTRADOR`, `MESERO`, `DESPACHADOR`.
+
 ## Endpoints principales (Usuarios)
 - `POST /auth/login`
 - `GET /users` (paginación y filtros: `rol`, `activo`, `deleted`)

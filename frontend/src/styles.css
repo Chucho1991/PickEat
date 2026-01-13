@@ -105,6 +105,15 @@ a {
   padding: 10px 12px;
   border-radius: 10px;
   transition: background 0.2s ease, color 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.nav-icon {
+  width: 20px;
+  text-align: center;
+  font-size: 16px;
 }
 
 .nav-label {
@@ -133,7 +142,7 @@ a {
 }
 
 .app-shell.sidebar-collapsed .nav a {
-  text-align: center;
+  justify-content: center;
 }
 
 .app-shell.sidebar-collapsed .nav-label {

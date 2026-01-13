@@ -16,13 +16,34 @@ import { AuthService } from './core/services/auth.service';
             <span class="brand-name">PickEat</span>
           </div>
           <nav class="nav">
-            <a routerLink="/dashboard" routerLinkActive="active"><span class="nav-label">Dashboard</span></a>
-            <a routerLink="/users" routerLinkActive="active" *ngIf="isAdmin()"><span class="nav-label">Usuarios</span></a>
-            <a routerLink="/profile" routerLinkActive="active"><span class="nav-label">Perfil</span></a>
-            <a routerLink="/mesas" routerLinkActive="active"><span class="nav-label">Mesas</span></a>
-            <a routerLink="/menu" routerLinkActive="active"><span class="nav-label">Menu</span></a>
-            <a routerLink="/ordenes" routerLinkActive="active"><span class="nav-label">Ordenes</span></a>
-            <a routerLink="/despachador" routerLinkActive="active"><span class="nav-label">Despachador</span></a>
+            <a routerLink="/dashboard" routerLinkActive="active">
+              <span class="nav-icon" aria-hidden="true">📊</span>
+              <span class="nav-label">Dashboard</span>
+            </a>
+            <a routerLink="/users" routerLinkActive="active" *ngIf="isAdmin()">
+              <span class="nav-icon" aria-hidden="true">👥</span>
+              <span class="nav-label">Usuarios</span>
+            </a>
+            <a routerLink="/profile" routerLinkActive="active">
+              <span class="nav-icon" aria-hidden="true">👤</span>
+              <span class="nav-label">Perfil</span>
+            </a>
+            <a routerLink="/mesas" routerLinkActive="active">
+              <span class="nav-icon" aria-hidden="true">🍽️</span>
+              <span class="nav-label">Mesas</span>
+            </a>
+            <a routerLink="/menu" routerLinkActive="active">
+              <span class="nav-icon" aria-hidden="true">📋</span>
+              <span class="nav-label">Menu</span>
+            </a>
+            <a routerLink="/ordenes" routerLinkActive="active">
+              <span class="nav-icon" aria-hidden="true">🧾</span>
+              <span class="nav-label">Ordenes</span>
+            </a>
+            <a routerLink="/despachador" routerLinkActive="active">
+              <span class="nav-icon" aria-hidden="true">🚚</span>
+              <span class="nav-label">Despachador</span>
+            </a>
           </nav>
           <button class="btn btn-ghost sidebar-logout" (click)="logout()">Salir</button>
         </aside>

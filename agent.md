@@ -7,6 +7,8 @@
 - En el frontend usar utilidades de Tailwind para estilos nuevos y centralizar overrides globales en `frontend/src/styles.css`.
 - Cuando el proyecto se declare culminado, eliminar los logs agregados para depuración.
 - Cuando el proyecto se declare culminado, eliminar la configuración temporal de debug (puertos/env vars).
+- En formularios, mostrar validaciones en rojo y mensajes claros (requerido, correo inválido, contraseñas no coinciden).
+- En listas, usar íconos en las acciones y mostrar el nombre de la acción al pasar el mouse (tooltip).
 
 # Cómo agregar un nuevo módulo (plantilla hexagonal)
 1. **Domain**: crear entidad/enum en `backend/src/main/java/com/pickeat/domain`.

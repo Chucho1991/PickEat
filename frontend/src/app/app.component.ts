@@ -1,4 +1,4 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, OnInit, computed, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from './core/services/auth.service';
@@ -62,6 +62,9 @@ import { AuthService } from './core/services/auth.service';
               </div>
             </div>
             <div class="topbar-user">
+              <button class="btn btn-ghost btn-sm" type="button" (click)="toggleTheme()" aria-label="Cambiar tema">
+                {{ theme === 'dark' ? '☀️' : '🌙' }}
+              </button>
               <div class="avatar">{{ userInitials() }}</div>
               <div>
                 <p class="user-name">{{ userName() }}</p>
@@ -69,7 +72,7 @@ import { AuthService } from './core/services/auth.service';
               </div>
             </div>
           </header>
-          <main class="content">
+          <main class="content" (click)="closeSidebarOnMobile()">
             <router-outlet></router-outlet>
           </main>
         </div>
@@ -87,11 +90,12 @@ import { AuthService } from './core/services/auth.service';
     `
   ]
 })
-export class AppComponent {
+export class AppComponent implements OnInit {
   private authService = inject(AuthService);
   isAuthenticated = computed(() => this.authService.isAuthenticated());
   isAdmin = computed(() => this.authService.hasRole(['SUPERADMINISTRADOR', 'ADMINISTRADOR']));
-  isSidebarCollapsed = false;
+  isSidebarCollapsed = typeof window !== 'undefined' && window.innerWidth < 1024;
+  theme = 'light';
   userName = computed(() => {
     this.authService.isAuthenticated();
     return this.authService.getUser()?.nombres ?? 'Usuario';
@@ -113,6 +117,36 @@ export class AppComponent {
    */
   toggleSidebar() {
     this.isSidebarCollapsed = !this.isSidebarCollapsed;
+  }
+
+  ngOnInit() {
+    const stored = typeof window !== 'undefined' ? window.localStorage.getItem('pickeat_theme') : null;
+    this.theme = stored === 'dark' ? 'dark' : 'light';
+    this.applyTheme();
+  }
+
+  toggleTheme() {
+    this.theme = this.theme === 'dark' ? 'light' : 'dark';
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem('pickeat_theme', this.theme);
+    }
+    this.applyTheme();
+  }
+
+  private applyTheme() {
+    if (typeof document === 'undefined') {
+      return;
+    }
+    document.body.classList.toggle('theme-dark', this.theme === 'dark');
+  }
+
+  /**
+   * Cierra el menú en pantallas pequeñas al interactuar con el contenido.
+   */
+  closeSidebarOnMobile() {
+    if (typeof window !== 'undefined' && window.innerWidth < 1024 && !this.isSidebarCollapsed) {
+      this.isSidebarCollapsed = true;
+    }
   }
 
   /**

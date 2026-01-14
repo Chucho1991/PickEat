@@ -65,10 +65,10 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
                 </span>
               </td>
               <td class="text-right">
-                <a class="btn btn-ghost btn-sm" [routerLink]="['/users', user.id]">Ver</a>
-                <a class="btn btn-ghost btn-sm" [routerLink]="['/users', user.id, 'edit']">Editar</a>
-                <button class="btn btn-ghost btn-sm" (click)="toggleDelete(user)">
-                  {{ user.deleted ? 'Restaurar' : 'Eliminar' }}
+                <a class="btn btn-ghost btn-sm icon-btn" [routerLink]="['/users', user.id]" title="Ver" aria-label="Ver">👁️</a>
+                <a class="btn btn-ghost btn-sm icon-btn" [routerLink]="['/users', user.id, 'edit']" title="Editar" aria-label="Editar">✏️</a>
+                <button class="btn btn-ghost btn-sm icon-btn" (click)="toggleDelete(user)" [title]="user.deleted ? 'Restaurar' : 'Eliminar'" [attr.aria-label]="user.deleted ? 'Restaurar' : 'Eliminar'">
+                  {{ user.deleted ? '♻️' : '🗑️' }}
                 </button>
               </td>
             </tr>

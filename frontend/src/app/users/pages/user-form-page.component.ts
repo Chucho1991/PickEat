@@ -25,30 +25,48 @@ import { UsersService } from '../../core/services/users.service';
       <form [formGroup]="form" (ngSubmit)="onSubmit()" class="form-grid">
         <label class="field">
           <span>Nombres</span>
-          <input type="text" formControlName="nombres" />
+          <input type="text" formControlName="nombres" [class.invalid]="isInvalid('nombres')" />
+          <span class="error-text" *ngIf="showRequired('nombres')">Este campo es obligatorio.</span>
         </label>
         <label class="field">
           <span>Correo</span>
-          <input type="email" formControlName="correo" />
+          <input type="email" formControlName="correo" [class.invalid]="isInvalid('correo')" />
+          <span class="error-text" *ngIf="showRequired('correo')">Este campo es obligatorio.</span>
+          <span class="error-text" *ngIf="form.get('correo')?.touched && form.get('correo')?.hasError('email')">
+            Ingresa un correo valido.
+          </span>
         </label>
         <label class="field">
           <span>Username</span>
-          <input type="text" formControlName="username" />
+          <input type="text" formControlName="username" [class.invalid]="isInvalid('username')" />
+          <span class="error-text" *ngIf="showRequired('username')">Este campo es obligatorio.</span>
         </label>
         <label class="field">
           <span>Rol</span>
-          <select formControlName="rol">
+          <select formControlName="rol" [class.invalid]="isInvalid('rol')">
             <option value="" disabled>Selecciona un rol</option>
             <option *ngFor="let rol of roles" [value]="rol">{{ rol }}</option>
           </select>
+          <span class="error-text" *ngIf="showRequired('rol')">Este campo es obligatorio.</span>
         </label>
         <label class="field" *ngIf="!isEdit">
           <span>Contrasena</span>
-          <input type="password" formControlName="password" />
+          <input type="password" formControlName="password" [class.invalid]="isInvalid('password')" />
+          <span class="error-text" *ngIf="showRequired('password')">Este campo es obligatorio.</span>
+          <span class="error-text" *ngIf="form.get('password')?.touched && form.get('password')?.hasError('minlength')">
+            Minimo 8 caracteres.
+          </span>
         </label>
         <label class="field" *ngIf="!isEdit">
           <span>Confirmar contrasena</span>
-          <input type="password" formControlName="confirmPassword" />
+          <input type="password" formControlName="confirmPassword" [class.invalid]="isInvalid('confirmPassword') || form.hasError('passwordMismatch')" />
+          <span class="error-text" *ngIf="showRequired('confirmPassword')">Este campo es obligatorio.</span>
+          <span class="error-text" *ngIf="form.get('confirmPassword')?.touched && form.get('confirmPassword')?.hasError('minlength')">
+            Minimo 8 caracteres.
+          </span>
+          <span class="error-text" *ngIf="form.get('confirmPassword')?.touched && form.hasError('passwordMismatch')">
+            Las contrasenas no coinciden.
+          </span>
         </label>
         <label class="field" *ngIf="isEdit">
           <span>Activo</span>
@@ -188,5 +206,15 @@ export class UserFormPageComponent implements OnInit {
       }
       return password === confirmPassword ? null : { passwordMismatch: true };
     };
+  }
+
+  isInvalid(controlName: string) {
+    const control = this.form.get(controlName);
+    return Boolean(control && control.touched && control.invalid);
+  }
+
+  showRequired(controlName: string) {
+    const control = this.form.get(controlName);
+    return Boolean(control && control.touched && control.hasError('required'));
   }
 }

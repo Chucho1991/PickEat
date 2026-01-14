@@ -41,11 +41,27 @@ import { AuthService } from '../../core/services/auth.service';
             <form [formGroup]="form" (ngSubmit)="onSubmit()" class="auth-form-fields">
               <label class="field">
                 <span>Usuario o correo</span>
-                <input type="text" formControlName="usernameOrEmail" placeholder="usuario@correo.com" />
+                <input
+                  type="text"
+                  formControlName="usernameOrEmail"
+                  placeholder="usuario@correo.com"
+                  [class.invalid]="form.get('usernameOrEmail')?.touched && form.get('usernameOrEmail')?.invalid"
+                />
+                <span class="error-text" *ngIf="form.get('usernameOrEmail')?.touched && form.get('usernameOrEmail')?.hasError('required')">
+                  Este campo es obligatorio.
+                </span>
               </label>
               <label class="field">
                 <span>Contrasena</span>
-                <input type="password" formControlName="password" placeholder="********" />
+                <input
+                  type="password"
+                  formControlName="password"
+                  placeholder="********"
+                  [class.invalid]="form.get('password')?.touched && form.get('password')?.invalid"
+                />
+                <span class="error-text" *ngIf="form.get('password')?.touched && form.get('password')?.hasError('required')">
+                  Este campo es obligatorio.
+                </span>
               </label>
               <button class="primary-btn" type="submit" [disabled]="form.invalid">Entrar</button>
             </form>
@@ -250,6 +266,13 @@ export class LoginPageComponent {
    */
   onSubmit() {
     if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      this.snackBar.open('Completa los campos requeridos', 'Cerrar', {
+        duration: 3000,
+        horizontalPosition: 'center',
+        verticalPosition: 'top',
+        panelClass: ['snack-top-center']
+      });
       return;
     }
     const { usernameOrEmail, password } = this.form.getRawValue();

@@ -4,6 +4,7 @@
 - DTOs solo en adapters/in.
 - Validar entrada con `jakarta.validation`.
 - Documentar cada método con Javadoc en Java y con Compodoc en Angular.
+- En el frontend usar utilidades de Tailwind para estilos nuevos y centralizar overrides globales en `frontend/src/styles.css`.
 
 # Cómo agregar un nuevo módulo (plantilla hexagonal)
 1. **Domain**: crear entidad/enum en `backend/src/main/java/com/pickeat/domain`.

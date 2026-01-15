@@ -1,0 +1,41 @@
+CREATE TABLE IF NOT EXISTS role_module_access (
+    rol VARCHAR(50) NOT NULL,
+    module_key VARCHAR(100) NOT NULL,
+    enabled BOOLEAN NOT NULL DEFAULT TRUE,
+    PRIMARY KEY (rol, module_key)
+);
+
+INSERT INTO role_module_access (rol, module_key, enabled) VALUES
+    ('SUPERADMINISTRADOR', 'dashboard', TRUE),
+    ('SUPERADMINISTRADOR', 'users', TRUE),
+    ('SUPERADMINISTRADOR', 'profile', TRUE),
+    ('SUPERADMINISTRADOR', 'mesas', TRUE),
+    ('SUPERADMINISTRADOR', 'menu', TRUE),
+    ('SUPERADMINISTRADOR', 'ordenes', TRUE),
+    ('SUPERADMINISTRADOR', 'despachador', TRUE),
+    ('SUPERADMINISTRADOR', 'role-modules', TRUE),
+    ('ADMINISTRADOR', 'dashboard', TRUE),
+    ('ADMINISTRADOR', 'users', TRUE),
+    ('ADMINISTRADOR', 'profile', TRUE),
+    ('ADMINISTRADOR', 'mesas', TRUE),
+    ('ADMINISTRADOR', 'menu', TRUE),
+    ('ADMINISTRADOR', 'ordenes', TRUE),
+    ('ADMINISTRADOR', 'despachador', TRUE),
+    ('ADMINISTRADOR', 'role-modules', TRUE),
+    ('MESERO', 'dashboard', TRUE),
+    ('MESERO', 'users', FALSE),
+    ('MESERO', 'profile', TRUE),
+    ('MESERO', 'mesas', TRUE),
+    ('MESERO', 'menu', TRUE),
+    ('MESERO', 'ordenes', TRUE),
+    ('MESERO', 'despachador', FALSE),
+    ('MESERO', 'role-modules', FALSE),
+    ('DESPACHADOR', 'dashboard', TRUE),
+    ('DESPACHADOR', 'users', FALSE),
+    ('DESPACHADOR', 'profile', TRUE),
+    ('DESPACHADOR', 'mesas', FALSE),
+    ('DESPACHADOR', 'menu', FALSE),
+    ('DESPACHADOR', 'ordenes', TRUE),
+    ('DESPACHADOR', 'despachador', TRUE),
+    ('DESPACHADOR', 'role-modules', FALSE)
+ON CONFLICT DO NOTHING;

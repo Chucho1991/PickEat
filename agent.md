@@ -5,6 +5,7 @@
 - Validar entrada con `jakarta.validation`.
 - Documentar cada método con Javadoc en Java y con Compodoc en Angular.
 - En el frontend usar utilidades de Tailwind para estilos nuevos y centralizar overrides globales en `frontend/src/styles.css`.
+- El paquete de íconos los debe tomar de tailadmin adjunto en la carpeta /libs
 - Cuando el proyecto se declare culminado, eliminar los logs agregados para depuración.
 - Cuando el proyecto se declare culminado, eliminar la configuración temporal de debug (puertos/env vars).
 - En formularios, mostrar validaciones en rojo y mensajes claros (requerido, correo inválido, contraseñas no coinciden).

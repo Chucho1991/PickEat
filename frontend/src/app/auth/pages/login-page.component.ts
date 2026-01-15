@@ -16,7 +16,11 @@ import { AuthService } from '../../core/services/auth.service';
       <section class="auth-panel auth-form">
         <div class="auth-content">
           <a routerLink="/" class="back-link" aria-label="Volver">
-            <span class="back-icon" aria-hidden="true">←</span>
+            <span class="back-icon" aria-hidden="true">
+              <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                <path fill-rule="evenodd" clip-rule="evenodd" d="M2.58203 9.99868C2.58174 10.1909 2.6549 10.3833 2.80152 10.53L7.79818 15.5301C8.09097 15.8231 8.56584 15.8233 8.85883 15.5305C9.15183 15.2377 9.152 14.7629 8.85921 14.4699L5.13911 10.7472L16.6665 10.7472C17.0807 10.7472 17.4165 10.4114 17.4165 9.99715C17.4165 9.58294 17.0807 9.24715 16.6665 9.24715L5.14456 9.24715L8.85919 5.53016C9.15199 5.23717 9.15184 4.7623 8.85885 4.4695C8.56587 4.1767 8.09099 4.17685 7.79819 4.46984L2.84069 9.43049C2.68224 9.568 2.58203 9.77087 2.58203 9.99715C2.58203 9.99766 2.58203 9.99817 2.58203 9.99868Z" fill="currentColor"></path>
+              </svg>
+            </span>
             Volver al inicio
           </a>
           <div class="auth-card">
@@ -27,11 +31,19 @@ import { AuthService } from '../../core/services/auth.service';
 
             <div class="oauth-grid">
               <button type="button" class="oauth-btn">
-                <span class="oauth-icon">G</span>
+                <span class="oauth-icon" aria-hidden="true">
+                  <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                    <path fill-rule="evenodd" clip-rule="evenodd" d="M3.04175 9.37363C3.04175 5.87693 5.87711 3.04199 9.37508 3.04199C12.8731 3.04199 15.7084 5.87693 15.7084 9.37363C15.7084 12.8703 12.8731 15.7053 9.37508 15.7053C5.87711 15.7053 3.04175 12.8703 3.04175 9.37363ZM9.37508 1.54199C5.04902 1.54199 1.54175 5.04817 1.54175 9.37363C1.54175 13.6991 5.04902 17.2053 9.37508 17.2053C11.2674 17.2053 13.003 16.5344 14.357 15.4176L17.177 18.238C17.4699 18.5309 17.9448 18.5309 18.2377 18.238C18.5306 17.9451 18.5306 17.4703 18.2377 17.1774L15.418 14.3573C16.5365 13.0033 17.2084 11.2669 17.2084 9.37363C17.2084 5.04817 13.7011 1.54199 9.37508 1.54199Z" fill="currentColor"></path>
+                  </svg>
+                </span>
                 Continuar con Google
               </button>
               <button type="button" class="oauth-btn">
-                <span class="oauth-icon">X</span>
+                <span class="oauth-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path fill-rule="evenodd" clip-rule="evenodd" d="M6.21967 7.28131C5.92678 6.98841 5.92678 6.51354 6.21967 6.22065C6.51256 5.92775 6.98744 5.92775 7.28033 6.22065L11.999 10.9393L16.7176 6.22078C17.0105 5.92789 17.4854 5.92788 17.7782 6.22078C18.0711 6.51367 18.0711 6.98855 17.7782 7.28144L13.0597 12L17.7782 16.7186C18.0711 17.0115 18.0711 17.4863 17.7782 17.7792C17.4854 18.0721 17.0105 18.0721 16.7176 17.7792L11.999 13.0607L7.28033 17.7794C6.98744 18.0722 6.51256 18.0722 6.21967 17.7794C5.92678 17.4865 5.92678 17.0116 6.21967 16.7187L10.9384 12L6.21967 7.28131Z" fill="currentColor"></path>
+                  </svg>
+                </span>
                 Continuar con X
               </button>
             </div>
@@ -111,8 +123,15 @@ import { AuthService } from '../../core/services/auth.service';
         color: #374151;
       }
       .back-icon {
-        font-size: 18px;
-        line-height: 1;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 18px;
+        height: 18px;
+      }
+      .back-icon svg {
+        width: 18px;
+        height: 18px;
       }
       .auth-card {
         background: #ffffff;
@@ -162,8 +181,11 @@ import { AuthService } from '../../core/services/auth.service';
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        font-size: 12px;
-        font-weight: 600;
+        color: #111827;
+      }
+      .oauth-icon svg {
+        width: 12px;
+        height: 12px;
       }
       .divider {
         position: relative;

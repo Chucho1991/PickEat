@@ -1,0 +1,40 @@
+package com.pickeat.application.usecase;
+
+import com.pickeat.domain.Role;
+import com.pickeat.domain.RoleModuleSetting;
+import com.pickeat.ports.in.ListRoleModulesUseCase;
+import com.pickeat.ports.out.RoleModuleRepositoryPort;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+/**
+ * Servicio para listar módulos habilitados por rol.
+ */
+@Service
+public class ListRoleModulesService implements ListRoleModulesUseCase {
+    private final RoleModuleRepositoryPort repository;
+    private final RoleModuleCatalog catalog;
+
+    /**
+     * Crea el servicio de consulta de módulos por rol.
+     *
+     * @param repository repositorio de módulos.
+     * @param catalog    catálogo con defaults.
+     */
+    public ListRoleModulesService(RoleModuleRepositoryPort repository, RoleModuleCatalog catalog) {
+        this.repository = repository;
+        this.catalog = catalog;
+    }
+
+    @Override
+    public List<RoleModuleSetting> list(Role role) {
+        List<RoleModuleSetting> stored = repository.findByRole(role);
+        if (stored.isEmpty()) {
+            List<RoleModuleSetting> defaults = catalog.defaultsFor(role);
+            repository.saveAll(role, defaults);
+            return defaults;
+        }
+        return stored;
+    }
+}

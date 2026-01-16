@@ -20,7 +20,7 @@ public class DashboardController {
      * @return mapa con indicadores básicos.
      */
     @GetMapping
-    @PreAuthorize("hasAnyRole('SUPERADMINISTRADOR','ADMINISTRADOR')")
+    @PreAuthorize("hasAnyRole('SUPERADMINISTRADOR','ADMINISTRADOR','MESERO','DESPACHADOR')")
     public ResponseEntity<Map<String, Object>> dashboard() {
         return ResponseEntity.ok(Map.of(
                 "usuariosActivos", 0,

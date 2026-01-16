@@ -3,6 +3,7 @@ import { AuthGuard } from './core/guards/auth.guard';
 import { RoleGuard } from './core/guards/role.guard';
 import { LoginPageComponent } from './auth/pages/login-page.component';
 import { DashboardPageComponent } from './dashboard/pages/dashboard-page.component';
+import { RoleModulesPageComponent } from './role-modules/pages/role-modules-page.component';
 import { UsersListPageComponent } from './users/pages/users-list-page.component';
 import { UserDetailPageComponent } from './users/pages/user-detail-page.component';
 import { UserFormPageComponent } from './users/pages/user-form-page.component';
@@ -19,7 +20,7 @@ export const routes: Routes = [
     path: 'dashboard',
     component: DashboardPageComponent,
     canActivate: [AuthGuard, RoleGuard],
-    data: { roles: ['SUPERADMINISTRADOR', 'ADMINISTRADOR'] }
+    data: { roles: ['SUPERADMINISTRADOR', 'ADMINISTRADOR', 'MESERO', 'DESPACHADOR'] }
   },
   {
     path: 'users',
@@ -31,6 +32,12 @@ export const routes: Routes = [
       { path: ':id', component: UserDetailPageComponent },
       { path: ':id/edit', component: UserFormPageComponent }
     ]
+  },
+  {
+    path: 'role-modules',
+    component: RoleModulesPageComponent,
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['SUPERADMINISTRADOR', 'ADMINISTRADOR'] }
   },
   { path: 'profile', component: ProfilePageComponent, canActivate: [AuthGuard] },
   {

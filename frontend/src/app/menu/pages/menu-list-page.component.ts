@@ -213,13 +213,25 @@ export class MenuListPageComponent implements OnInit, OnDestroy {
     if (!item.deleted && !confirm(`Eliminar el item ${item.nickname}?`)) {
       return;
     }
-    const action = item.deleted ? this.menuApi.restore(item.id) : this.menuApi.delete(item.id);
-    action.subscribe({
+    if (item.deleted) {
+      this.menuApi.restore(item.id).subscribe({
+        next: () => {
+          this.snackBar.open('Item restaurado', 'Cerrar', { duration: 3000 });
+          this.loadItems();
+        },
+        error: (error: unknown) =>
+          this.snackBar.open((error as { error?: { error?: string } })?.error?.error || 'No se pudo restaurar el item', 'Cerrar', { duration: 3000 })
+      });
+      return;
+    }
+
+    this.menuApi.delete(item.id).subscribe({
       next: () => {
-        this.snackBar.open(item.deleted ? 'Item restaurado' : 'Item eliminado', 'Cerrar', { duration: 3000 });
+        this.snackBar.open('Item eliminado', 'Cerrar', { duration: 3000 });
         this.loadItems();
       },
-      error: (error) => this.snackBar.open(error?.error?.error || 'No se pudo actualizar el item', 'Cerrar', { duration: 3000 })
+      error: (error: unknown) =>
+        this.snackBar.open((error as { error?: { error?: string } })?.error?.error || 'No se pudo eliminar el item', 'Cerrar', { duration: 3000 })
     });
   }
 

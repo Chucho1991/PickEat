@@ -128,13 +128,25 @@ export class MesasListPageComponent implements OnInit {
     if (!mesa.deleted && !confirm('Deseas eliminar esta mesa?')) {
       return;
     }
-    const action = mesa.deleted ? this.mesasApi.restore(mesa.id) : this.mesasApi.delete(mesa.id);
-    action.subscribe({
+    if (mesa.deleted) {
+      this.mesasApi.restore(mesa.id).subscribe({
+        next: () => {
+          this.snackBar.open('Mesa restaurada', 'Cerrar', { duration: 3000 });
+          this.loadMesas();
+        },
+        error: (error: unknown) =>
+          this.snackBar.open((error as { error?: { error?: string } })?.error?.error || 'No se pudo restaurar la mesa', 'Cerrar', { duration: 3000 })
+      });
+      return;
+    }
+
+    this.mesasApi.delete(mesa.id).subscribe({
       next: () => {
-        this.snackBar.open(mesa.deleted ? 'Mesa restaurada' : 'Mesa eliminada', 'Cerrar', { duration: 3000 });
+        this.snackBar.open('Mesa eliminada', 'Cerrar', { duration: 3000 });
         this.loadMesas();
       },
-      error: (error) => this.snackBar.open(error?.error?.error || 'No se pudo actualizar la mesa', 'Cerrar', { duration: 3000 })
+      error: (error: unknown) =>
+        this.snackBar.open((error as { error?: { error?: string } })?.error?.error || 'No se pudo eliminar la mesa', 'Cerrar', { duration: 3000 })
     });
   }
 

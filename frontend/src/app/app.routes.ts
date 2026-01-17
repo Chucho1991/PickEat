@@ -9,6 +9,8 @@ import { UserDetailPageComponent } from './users/pages/user-detail-page.componen
 import { UserFormPageComponent } from './users/pages/user-form-page.component';
 import { ProfilePageComponent } from './users/pages/profile-page.component';
 import { PlaceholderPageComponent } from './placeholders/pages/placeholder-page.component';
+import { MenuListPageComponent } from './menu/pages/menu-list-page.component';
+import { MenuFormPageComponent } from './menu/pages/menu-form-page.component';
 
 /**
  * Definición de rutas principales de la aplicación.
@@ -48,9 +50,13 @@ export const routes: Routes = [
   },
   {
     path: 'menu',
-    component: PlaceholderPageComponent,
-    canActivate: [AuthGuard],
-    data: { title: 'Menu' }
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['SUPERADMINISTRADOR', 'ADMINISTRADOR'] },
+    children: [
+      { path: '', component: MenuListPageComponent },
+      { path: 'new', component: MenuFormPageComponent },
+      { path: ':id/edit', component: MenuFormPageComponent }
+    ]
   },
   {
     path: 'ordenes',

@@ -29,7 +29,7 @@ public class RoleModuleCatalog {
         return switch (role) {
             case SUPERADMINISTRADOR, ADMINISTRADOR -> true;
             case MESERO -> switch (module) {
-                case DASHBOARD, PROFILE, MESAS, MENU, ORDENES -> true;
+                case DASHBOARD, PROFILE, MESAS, ORDENES -> true;
                 default -> false;
             };
             case DESPACHADOR -> switch (module) {

@@ -1,10 +1,12 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MenuApiService, MenuItemDto } from '../../core/services/menu-api.service';
 import { environment } from '../../../environments/environment';
+import { Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged, map, takeUntil } from 'rxjs/operators';
 
 /**
  * Página con el listado principal de ítems del menú.
@@ -44,7 +46,6 @@ import { environment } from '../../../environments/environment';
             <span>Buscar</span>
             <input type="search" placeholder="Descripción o pseudónimo" formControlName="search" />
           </label>
-          <button class="btn btn-ghost btn-sm" type="submit">Aplicar</button>
           <button class="btn btn-ghost btn-sm" type="button" (click)="clearFilters()">Limpiar</button>
         </form>
       </div>
@@ -107,10 +108,11 @@ import { environment } from '../../../environments/environment';
     </div>
   `
 })
-export class MenuListPageComponent implements OnInit {
+export class MenuListPageComponent implements OnInit, OnDestroy {
   private menuApi = inject(MenuApiService);
   private snackBar = inject(MatSnackBar);
   private formBuilder = inject(FormBuilder);
+  private destroy$ = new Subject<void>();
   items: MenuItemDto[] = [];
   dishTypes = ['ENTRADA', 'FUERTE', 'BEBIDA', 'OTRO', 'POSTRE', 'COMBO'];
   statusOptions = ['ACTIVO', 'INACTIVO'];
@@ -126,6 +128,19 @@ export class MenuListPageComponent implements OnInit {
    */
   ngOnInit() {
     this.loadItems();
+    this.filters.valueChanges
+      .pipe(
+        debounceTime(300),
+        map((value) => JSON.stringify(value ?? {})),
+        distinctUntilChanged(),
+        takeUntil(this.destroy$)
+      )
+      .subscribe(() => this.loadItems());
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   /**

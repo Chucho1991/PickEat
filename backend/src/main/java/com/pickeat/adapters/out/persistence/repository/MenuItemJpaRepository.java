@@ -15,6 +15,7 @@ import java.util.UUID;
  * Repositorio JPA para ítems del menú.
  */
 public interface MenuItemJpaRepository extends JpaRepository<MenuItemJpaEntity, UUID> {
+
     /**
      * Busca por pseudónimo.
      *
@@ -31,13 +32,19 @@ public interface MenuItemJpaRepository extends JpaRepository<MenuItemJpaEntity, 
      * @param search término de búsqueda.
      * @return listado de ítems.
      */
-    @Query("SELECT m FROM MenuItemJpaEntity m "
-            + "WHERE (:dishType IS NULL OR m.dishType = :dishType) "
-            + "AND (:status IS NULL OR m.status = :status) "
-            + "AND (:search IS NULL OR (LOWER(m.longDescription) LIKE LOWER(CONCAT('%', :search, '%')) "
-            + "OR LOWER(m.shortDescription) LIKE LOWER(CONCAT('%', :search, '%')) "
-            + "OR LOWER(m.nickname) LIKE LOWER(CONCAT('%', :search, '%')))) "
-            + "ORDER BY m.createdAt DESC")
+    @Query("""
+        SELECT m
+        FROM MenuItemJpaEntity m
+        WHERE (:dishType IS NULL OR m.dishType = :dishType)
+          AND (:status IS NULL OR m.status = :status)
+          AND (
+                :search IS NULL OR :search = '' OR
+                LOWER(m.longDescription)  LIKE LOWER(CONCAT('%', :search, '%')) OR
+                LOWER(m.shortDescription) LIKE LOWER(CONCAT('%', :search, '%')) OR
+                LOWER(m.nickname)         LIKE LOWER(CONCAT('%', :search, '%'))
+          )
+        ORDER BY m.createdAt DESC
+    """)
     List<MenuItemJpaEntity> findAllFiltered(@Param("dishType") DishType dishType,
                                             @Param("status") MenuItemStatus status,
                                             @Param("search") String search);

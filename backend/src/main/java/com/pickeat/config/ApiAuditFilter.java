@@ -40,13 +40,17 @@ public class ApiAuditFilter extends OncePerRequestFilter {
             filterChain.doFilter(requestWrapper, responseWrapper);
         } finally {
             String endpoint = request.getMethod() + " " + request.getRequestURI();
-            String requestBody = toPayload(requestWrapper.getContentAsByteArray());
-            String responseBody = toPayload(responseWrapper.getContentAsByteArray());
+            String requestBody = toPayload(requestWrapper.getContentAsByteArray(), requestWrapper.getContentType());
+            String responseBody = toPayload(responseWrapper.getContentAsByteArray(), responseWrapper.getContentType());
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String user = authentication != null ? authentication.getName() : "anon";
             String role = authentication != null && !authentication.getAuthorities().isEmpty()
                     ? authentication.getAuthorities().iterator().next().getAuthority() : "";
-            auditRepository.saveApiAudit(endpoint, requestBody, responseBody, user, role);
+            try {
+                auditRepository.saveApiAudit(endpoint, requestBody, responseBody, user, role);
+            } catch (RuntimeException ex) {
+                LOGGER.warn("API audit save failed for {}", endpoint, ex);
+            }
             long elapsedMs = System.currentTimeMillis() - startTimeMs;
             LOGGER.info("API {} status={} user={} role={} elapsedMs={} request={} response={}",
                     endpoint,
@@ -60,14 +64,30 @@ public class ApiAuditFilter extends OncePerRequestFilter {
         }
     }
 
-    private String toPayload(byte[] payload) {
+    private String toPayload(byte[] payload, String contentType) {
         if (payload == null || payload.length == 0) {
             return "";
+        }
+        if (!isTextContentType(contentType)) {
+            return "[binary]";
         }
         String body = new String(payload, StandardCharsets.UTF_8);
         if (body.length() > maxPayloadSize) {
             return body.substring(0, maxPayloadSize) + "...";
         }
         return body;
+    }
+
+    private boolean isTextContentType(String contentType) {
+        if (contentType == null) {
+            return false;
+        }
+        String normalized = contentType.toLowerCase();
+        return normalized.startsWith("text/")
+                || normalized.startsWith("application/json")
+                || normalized.contains("+json")
+                || normalized.contains("application/xml")
+                || normalized.contains("+xml")
+                || normalized.startsWith("application/x-www-form-urlencoded");
     }
 }

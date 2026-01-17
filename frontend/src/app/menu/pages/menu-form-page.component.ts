@@ -61,7 +61,7 @@ import { environment } from '../../../environments/environment';
           <span class="error-text" *ngIf="showRequired('status')">Este campo es obligatorio.</span>
         </label>
         <label class="field full-width">
-          <span>Imagen (400x400 px)</span>
+          <span>Imagen (se redimensiona automaticamente)</span>
           <input type="file" accept="image/png, image/jpeg" (change)="onFileSelected($event)" />
           <span class="error-text" *ngIf="imageError">{{ imageError }}</span>
           <div class="image-preview" *ngIf="imagePreview || existingImagePath">
@@ -187,10 +187,6 @@ export class MenuFormPageComponent implements OnInit {
     reader.onload = () => {
       const image = new Image();
       image.onload = () => {
-        if (image.width !== 400 || image.height !== 400) {
-          this.setImageError('La imagen debe ser exactamente de 400x400 px.');
-          return;
-        }
         this.imageError = '';
         this.selectedImage = file;
         this.imagePreview = reader.result as string;

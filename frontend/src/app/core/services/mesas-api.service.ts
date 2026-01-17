@@ -53,6 +53,13 @@ export class MesasApiService {
     return this.http.delete<void>(`${this.baseUrl}/${id}`);
   }
 
+  /**
+   * Restaura una mesa eliminada lógicamente.
+   */
+  restore(id: string): Observable<MesaDto> {
+    return this.http.post<MesaDto>(`${this.baseUrl}/${id}/restore`, {});
+  }
+
   changeActive(id: string, activo: boolean): Observable<MesaDto> {
     return this.http.post<MesaDto>(`${this.baseUrl}/${id}/active`, { activo });
   }

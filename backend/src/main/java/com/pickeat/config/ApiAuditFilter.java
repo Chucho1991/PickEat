@@ -12,12 +12,15 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.util.ContentCachingRequestWrapper;
 import org.springframework.web.util.ContentCachingResponseWrapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 @Component
 public class ApiAuditFilter extends OncePerRequestFilter {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ApiAuditFilter.class);
     private final AuditRepositoryPort auditRepository;
     private final int maxPayloadSize;
 
@@ -32,6 +35,7 @@ public class ApiAuditFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
         ContentCachingRequestWrapper requestWrapper = new ContentCachingRequestWrapper(request);
         ContentCachingResponseWrapper responseWrapper = new ContentCachingResponseWrapper(response);
+        long startTimeMs = System.currentTimeMillis();
         try {
             filterChain.doFilter(requestWrapper, responseWrapper);
         } finally {
@@ -43,6 +47,15 @@ public class ApiAuditFilter extends OncePerRequestFilter {
             String role = authentication != null && !authentication.getAuthorities().isEmpty()
                     ? authentication.getAuthorities().iterator().next().getAuthority() : "";
             auditRepository.saveApiAudit(endpoint, requestBody, responseBody, user, role);
+            long elapsedMs = System.currentTimeMillis() - startTimeMs;
+            LOGGER.info("API {} status={} user={} role={} elapsedMs={} request={} response={}",
+                    endpoint,
+                    responseWrapper.getStatus(),
+                    user,
+                    role,
+                    elapsedMs,
+                    requestBody,
+                    responseBody);
             responseWrapper.copyBodyToResponse();
         }
     }

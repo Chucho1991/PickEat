@@ -1,0 +1,601 @@
+{
+  "info": {
+    "name": "PickEat API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "token",
+      "value": ""
+    },
+    {
+      "key": "userId",
+      "value": ""
+    },
+    {
+      "key": "role",
+      "value": "ADMINISTRADOR"
+    },
+    {
+      "key": "menuItemId",
+      "value": ""
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "GET /health",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "health"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "POST /auth/login",
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"usernameOrEmail\":\"admin\",\"password\":\"admin\"}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Dashboard",
+      "item": [
+        {
+          "name": "GET /dashboard",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/dashboard",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "dashboard"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Placeholders",
+      "item": [
+        {
+          "name": "GET /despachador",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/despachador",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "despachador"
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /menu",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/menu",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "menu"
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /mesas",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/mesas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "mesas"
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /ordenes",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/ordenes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "ordenes"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "POST /users",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"nombres\":\"Admin\",\"apellidos\":\"User\",\"correo\":\"admin@example.com\",\"username\":\"admin\",\"rol\":\"ADMINISTRADOR\",\"password\":\"admin\",\"confirmPassword\":\"admin\"}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users"
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /users",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/users?rol=&activo=&deleted=&page=0&size=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users"
+              ],
+              "query": [
+                {
+                  "key": "rol",
+                  "value": "",
+                  "description": "Optional role filter"
+                },
+                {
+                  "key": "activo",
+                  "value": "",
+                  "description": "Optional active filter"
+                },
+                {
+                  "key": "deleted",
+                  "value": "",
+                  "description": "Optional deleted filter"
+                },
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /users/{id}",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/users/{{userId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "{{userId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "PUT /users/{id}",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"nombres\":\"Admin\",\"apellidos\":\"User\",\"correo\":\"admin@example.com\",\"username\":\"admin\",\"rol\":\"ADMINISTRADOR\",\"activo\":true}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/{{userId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "{{userId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST /users/{id}/soft-delete",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/users/{{userId}}/soft-delete",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "{{userId}}",
+                "soft-delete"
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST /users/{id}/restore",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/users/{{userId}}/restore",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "{{userId}}",
+                "restore"
+              ]
+            }
+          }
+        },
+        {
+          "name": "DELETE /users/{id}",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/users/{{userId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "{{userId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /users/me",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/users/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "me"
+              ]
+            }
+          }
+        },
+        {
+          "name": "PUT /users/me",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"nombres\":\"Admin\",\"apellidos\":\"User\",\"correo\":\"admin@example.com\",\"username\":\"admin\",\"password\":\"\",\"confirmPassword\":\"\"}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "me"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Role Modules",
+      "item": [
+        {
+          "name": "GET /role-modules/me",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/role-modules/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "role-modules",
+                "me"
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /role-modules/{role}",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/role-modules/{{role}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "role-modules",
+                "{{role}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "PUT /role-modules/{role}",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"modules\":[{\"key\":\"DASHBOARD\",\"enabled\":true},{\"key\":\"USUARIOS\",\"enabled\":true}]}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/role-modules/{{role}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "role-modules",
+                "{{role}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Menu Items",
+      "item": [
+        {
+          "name": "POST /menu-items",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"longDescription\":\"Pizza familiar\",\"shortDescription\":\"Pizza\",\"nickname\":\"PIZZA\",\"dishType\":\"PLATO_FUERTE\",\"status\":\"ACTIVO\",\"price\":12.5}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/menu-items",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "menu-items"
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /menu-items",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/menu-items?dishType=&status=&search=",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "menu-items"
+              ],
+              "query": [
+                {
+                  "key": "dishType",
+                  "value": ""
+                },
+                {
+                  "key": "status",
+                  "value": ""
+                },
+                {
+                  "key": "search",
+                  "value": ""
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /menu-items/{id}",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/menu-items/{{menuItemId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "menu-items",
+                "{{menuItemId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "PUT /menu-items/{id}",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"longDescription\":\"Pizza familiar\",\"shortDescription\":\"Pizza\",\"nickname\":\"PIZZA\",\"dishType\":\"PLATO_FUERTE\",\"status\":\"ACTIVO\",\"price\":12.5}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/menu-items/{{menuItemId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "menu-items",
+                "{{menuItemId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST /menu-items/{id}/status",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"status\":\"ACTIVO\"}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/menu-items/{{menuItemId}}/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "menu-items",
+                "{{menuItemId}}",
+                "status"
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST /menu-items/{id}/image",
+          "request": {
+            "method": "POST",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": ""
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/menu-items/{{menuItemId}}/image",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "menu-items",
+                "{{menuItemId}}",
+                "image"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

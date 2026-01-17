@@ -1,10 +1,9 @@
 package com.pickeat.application;
 
-import com.pickeat.application.usecase.ChangeMenuItemStatusService;
+import com.pickeat.application.usecase.ChangeMenuItemActiveService;
 import com.pickeat.domain.DishType;
 import com.pickeat.domain.MenuItem;
 import com.pickeat.domain.MenuItemId;
-import com.pickeat.domain.MenuItemStatus;
 import com.pickeat.ports.out.MenuItemRepositoryPort;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -18,19 +17,20 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
-class ChangeMenuItemStatusServiceTest {
+class ChangeMenuItemActiveServiceTest {
     @Test
-    void changesMenuItemStatus() {
+    void changesMenuItemActive() {
         MenuItemRepositoryPort repository = Mockito.mock(MenuItemRepositoryPort.class);
-        ChangeMenuItemStatusService service = new ChangeMenuItemStatusService(repository);
+        ChangeMenuItemActiveService service = new ChangeMenuItemActiveService(repository);
         MenuItemId id = new MenuItemId(UUID.randomUUID());
         MenuItem existing = new MenuItem(
                 id,
-                "Descripción larga",
+                "Descripcion larga",
                 "Corta",
                 "postre",
                 DishType.POSTRE,
-                MenuItemStatus.INACTIVO,
+                false,
+                false,
                 BigDecimal.valueOf(4.0),
                 null,
                 Instant.now(),
@@ -40,8 +40,8 @@ class ChangeMenuItemStatusServiceTest {
         when(repository.findById(id)).thenReturn(Optional.of(existing));
         when(repository.save(any(MenuItem.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        MenuItem updated = service.changeStatus(id, MenuItemStatus.ACTIVO);
+        MenuItem updated = service.changeActive(id, true);
 
-        assertThat(updated.getStatus()).isEqualTo(MenuItemStatus.ACTIVO);
+        assertThat(updated.isActive()).isTrue();
     }
 }

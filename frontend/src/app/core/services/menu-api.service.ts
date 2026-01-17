@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
 /**
- * Representa un ítem del menú.
+ * Representa un item del menu.
  */
 export interface MenuItemDto {
   id: string;
@@ -12,7 +12,8 @@ export interface MenuItemDto {
   shortDescription: string;
   nickname: string;
   dishType: string;
-  status: string;
+  activo: boolean;
+  deleted: boolean;
   price: number;
   imagePath?: string | null;
   createdAt: string;
@@ -20,78 +21,84 @@ export interface MenuItemDto {
 }
 
 /**
- * Solicitud para crear o actualizar ítems.
+ * Solicitud para crear o actualizar items.
  */
 export interface MenuItemRequest {
   longDescription: string;
   shortDescription: string;
   nickname: string;
   dishType: string;
-  status: string;
+  activo: boolean;
   price: number;
 }
 
 /**
- * Servicio de API para el módulo de menú.
+ * Servicio de API para el modulo de menu.
  */
 @Injectable({ providedIn: 'root' })
 export class MenuApiService {
   private baseUrl = `${environment.apiUrl}/menu-items`;
 
-  /**
-   * Crea el servicio con HTTP.
-   *
-   * @param http cliente HTTP.
-   */
+  /** Crea el servicio con HTTP. */
   constructor(private http: HttpClient) {}
 
   /**
-   * Lista ítems del menú con filtros.
+   * Lista items del menu con filtros.
    */
-  list(filters: { dishType?: string; status?: string; search?: string }): Observable<MenuItemDto[]> {
+  list(filters: { dishType?: string; activo?: boolean; search?: string; includeDeleted?: boolean }): Observable<MenuItemDto[]> {
     let params = new HttpParams();
     if (filters.dishType) {
       params = params.set('dishType', filters.dishType);
     }
-    if (filters.status) {
-      params = params.set('status', filters.status);
+    if (filters.activo !== undefined) {
+      params = params.set('activo', String(filters.activo));
     }
     if (filters.search) {
       params = params.set('search', filters.search);
+    }
+    if (filters.includeDeleted) {
+      params = params.set('includeDeleted', 'true');
     }
     return this.http.get<MenuItemDto[]>(this.baseUrl, { params });
   }
 
   /**
-   * Obtiene un ítem por id.
+   * Obtiene un item por id.
    */
   getById(id: string): Observable<MenuItemDto> {
     return this.http.get<MenuItemDto>(`${this.baseUrl}/${id}`);
   }
 
   /**
-   * Crea un nuevo ítem.
+   * Crea un nuevo item.
    */
   create(request: MenuItemRequest): Observable<MenuItemDto> {
     return this.http.post<MenuItemDto>(this.baseUrl, request);
   }
 
   /**
-   * Actualiza un ítem.
+   * Actualiza un item.
    */
   update(id: string, request: MenuItemRequest): Observable<MenuItemDto> {
     return this.http.put<MenuItemDto>(`${this.baseUrl}/${id}`, request);
   }
 
   /**
-   * Cambia el estado del ítem.
+   * Cambia el estado activo del item.
    */
-  changeStatus(id: string, status: string): Observable<MenuItemDto> {
-    return this.http.post<MenuItemDto>(`${this.baseUrl}/${id}/status`, { status });
+  changeActive(id: string, activo: boolean): Observable<MenuItemDto> {
+    return this.http.post<MenuItemDto>(`${this.baseUrl}/${id}/active`, { activo });
   }
 
   /**
-   * Sube una imagen para el ítem.
+   * Elimina un item de forma logica.
+   */
+  delete(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/${id}`);
+  }
+
+  /**
+   * Sube una imagen para el item.
    */
   uploadImage(id: string, file: File): Observable<MenuItemDto> {
     const formData = new FormData();

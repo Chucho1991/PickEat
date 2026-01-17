@@ -1,0 +1,6 @@
+CREATE TABLE IF NOT EXISTS mesa (
+    id UUID PRIMARY KEY,
+    description VARCHAR(150) NOT NULL,
+    seats INTEGER NOT NULL,
+    status VARCHAR(10) NOT NULL
+);

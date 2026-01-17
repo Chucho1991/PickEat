@@ -5,32 +5,20 @@ import com.pickeat.adapters.in.rest.dto.MenuItemResponse;
 import com.pickeat.domain.MenuItem;
 
 /**
- * Mapper REST para ítems del menú.
+ * Mapper REST para items del menu.
  */
 public class MenuItemRestMapper {
-    /**
-     * Convierte una solicitud a dominio.
-     *
-     * @param request solicitud REST.
-     * @return entidad de dominio.
-     */
     public MenuItem toDomain(MenuItemRequest request) {
         return MenuItem.createNew(
                 request.getLongDescription(),
                 request.getShortDescription(),
                 request.getNickname(),
                 request.getDishType(),
-                request.getStatus(),
+                Boolean.TRUE.equals(request.getActivo()),
                 request.getPrice()
         );
     }
 
-    /**
-     * Copia los datos de la solicitud a un dominio existente.
-     *
-     * @param request solicitud REST.
-     * @return entidad con datos actualizados.
-     */
     public MenuItem toUpdateDomain(MenuItemRequest request) {
         return new MenuItem(
                 null,
@@ -38,7 +26,8 @@ public class MenuItemRestMapper {
                 request.getShortDescription(),
                 request.getNickname(),
                 request.getDishType(),
-                request.getStatus(),
+                Boolean.TRUE.equals(request.getActivo()),
+                false,
                 request.getPrice(),
                 null,
                 null,
@@ -46,12 +35,6 @@ public class MenuItemRestMapper {
         );
     }
 
-    /**
-     * Convierte un dominio a respuesta REST.
-     *
-     * @param menuItem entidad de dominio.
-     * @return respuesta REST.
-     */
     public MenuItemResponse toResponse(MenuItem menuItem) {
         MenuItemResponse response = new MenuItemResponse();
         response.setId(menuItem.getId().getValue());
@@ -59,7 +42,8 @@ public class MenuItemRestMapper {
         response.setShortDescription(menuItem.getShortDescription());
         response.setNickname(menuItem.getNickname());
         response.setDishType(menuItem.getDishType());
-        response.setStatus(menuItem.getStatus());
+        response.setActivo(menuItem.isActive());
+        response.setDeleted(menuItem.isDeleted());
         response.setPrice(menuItem.getPrice());
         response.setImagePath(menuItem.getImagePath());
         response.setCreatedAt(menuItem.getCreatedAt());

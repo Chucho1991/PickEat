@@ -10,27 +10,50 @@ export interface MesaDto {
   id: string;
   description: string;
   seats: number;
-  status: string;
+  activo: boolean;
+  deleted: boolean;
 }
 
 /**
- * Servicio de API para el módulo de mesas.
+ * Solicitud para crear o actualizar mesas.
+ */
+export interface MesaRequest {
+  description: string;
+  seats: number;
+  activo: boolean;
+}
+
+/**
+ * Servicio de API para el modulo de mesas.
  */
 @Injectable({ providedIn: 'root' })
 export class MesasApiService {
   private baseUrl = `${environment.apiUrl}/mesas`;
 
-  /**
-   * Crea el servicio con HTTP.
-   *
-   * @param http cliente HTTP.
-   */
   constructor(private http: HttpClient) {}
 
-  /**
-   * Lista las mesas disponibles.
-   */
-  list(): Observable<MesaDto[]> {
-    return this.http.get<MesaDto[]>(this.baseUrl);
+  list(includeDeleted?: boolean): Observable<MesaDto[]> {
+    const params = includeDeleted ? { includeDeleted: 'true' } : undefined;
+    return this.http.get<MesaDto[]>(this.baseUrl, { params });
+  }
+
+  getById(id: string): Observable<MesaDto> {
+    return this.http.get<MesaDto>(`${this.baseUrl}/${id}`);
+  }
+
+  create(request: MesaRequest): Observable<MesaDto> {
+    return this.http.post<MesaDto>(this.baseUrl, request);
+  }
+
+  update(id: string, request: MesaRequest): Observable<MesaDto> {
+    return this.http.put<MesaDto>(`${this.baseUrl}/${id}`, request);
+  }
+
+  delete(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/${id}`);
+  }
+
+  changeActive(id: string, activo: boolean): Observable<MesaDto> {
+    return this.http.post<MesaDto>(`${this.baseUrl}/${id}/active`, { activo });
   }
 }

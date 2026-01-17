@@ -4,7 +4,6 @@ import com.pickeat.application.usecase.UpdateMenuItemService;
 import com.pickeat.domain.DishType;
 import com.pickeat.domain.MenuItem;
 import com.pickeat.domain.MenuItemId;
-import com.pickeat.domain.MenuItemStatus;
 import com.pickeat.ports.out.MenuItemRepositoryPort;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -26,11 +25,12 @@ class UpdateMenuItemServiceTest {
         MenuItemId id = new MenuItemId(UUID.randomUUID());
         MenuItem existing = new MenuItem(
                 id,
-                "Descripción larga",
+                "Descripcion larga",
                 "Corta",
                 "ensalada",
                 DishType.ENTRADA,
-                MenuItemStatus.INACTIVO,
+                false,
+                false,
                 BigDecimal.valueOf(5),
                 null,
                 Instant.now(),
@@ -38,11 +38,12 @@ class UpdateMenuItemServiceTest {
         );
         MenuItem update = new MenuItem(
                 null,
-                "Nueva descripción",
+                "Nueva descripcion",
                 "Nueva corta",
                 "ensalada-fresca",
                 DishType.ENTRADA,
-                MenuItemStatus.ACTIVO,
+                true,
+                false,
                 BigDecimal.valueOf(6.5),
                 null,
                 null,
@@ -56,6 +57,6 @@ class UpdateMenuItemServiceTest {
         MenuItem saved = service.update(id, update);
 
         assertThat(saved.getNickname()).isEqualTo("ensalada-fresca");
-        assertThat(saved.getStatus()).isEqualTo(MenuItemStatus.ACTIVO);
+        assertThat(saved.isActive()).isTrue();
     }
 }

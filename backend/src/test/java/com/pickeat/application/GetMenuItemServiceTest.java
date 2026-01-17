@@ -4,7 +4,6 @@ import com.pickeat.application.usecase.GetMenuItemService;
 import com.pickeat.domain.DishType;
 import com.pickeat.domain.MenuItem;
 import com.pickeat.domain.MenuItemId;
-import com.pickeat.domain.MenuItemStatus;
 import com.pickeat.ports.out.MenuItemRepositoryPort;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -25,11 +24,12 @@ class GetMenuItemServiceTest {
         MenuItemId id = new MenuItemId(UUID.randomUUID());
         MenuItem existing = new MenuItem(
                 id,
-                "Descripción larga",
+                "Descripcion larga",
                 "Corta",
                 "sopa",
                 DishType.ENTRADA,
-                MenuItemStatus.ACTIVO,
+                true,
+                false,
                 BigDecimal.valueOf(3.5),
                 null,
                 Instant.now(),

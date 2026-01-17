@@ -4,10 +4,11 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MenuApiService, MenuItemRequest } from '../../core/services/menu-api.service';
+import { AuthService } from '../../core/services/auth.service';
 import { environment } from '../../../environments/environment';
 
 /**
- * Página de formulario para crear o editar ítems del menú.
+ * Pagina de formulario para crear o editar items del menu.
  */
 @Component({
   selector: 'app-menu-form-page',
@@ -16,8 +17,8 @@ import { environment } from '../../../environments/environment';
   template: `
     <div class="page-header">
       <div>
-        <h2 class="page-title">{{ isEdit ? 'Editar ítem' : 'Nuevo ítem' }}</h2>
-        <p class="page-subtitle">Completa la información del menú.</p>
+        <h2 class="page-title">{{ isEdit ? 'Editar item' : 'Nuevo item' }}</h2>
+        <p class="page-subtitle">Completa la informacion del menu.</p>
       </div>
       <button class="btn btn-ghost" type="button" (click)="back()">Volver</button>
     </div>
@@ -25,17 +26,17 @@ import { environment } from '../../../environments/environment';
     <div class="card">
       <form [formGroup]="form" (ngSubmit)="onSubmit()" class="form-grid">
         <label class="field full-width">
-          <span>Descripción larga</span>
+          <span>Descripcion larga</span>
           <textarea rows="4" formControlName="longDescription" [class.invalid]="isInvalid('longDescription')"></textarea>
           <span class="error-text" *ngIf="showRequired('longDescription')">Este campo es obligatorio.</span>
         </label>
         <label class="field">
-          <span>Descripción corta</span>
+          <span>Descripcion corta</span>
           <input type="text" formControlName="shortDescription" [class.invalid]="isInvalid('shortDescription')" />
           <span class="error-text" *ngIf="showRequired('shortDescription')">Este campo es obligatorio.</span>
         </label>
         <label class="field">
-          <span>Pseudónimo</span>
+          <span>Pseudonimo</span>
           <input type="text" formControlName="nickname" [class.invalid]="isInvalid('nickname')" />
           <span class="error-text" *ngIf="showRequired('nickname')">Este campo es obligatorio.</span>
         </label>
@@ -54,11 +55,11 @@ import { environment } from '../../../environments/environment';
           <span class="error-text" *ngIf="form.get('price')?.hasError('min')">Debe ser mayor o igual a 0.</span>
         </label>
         <label class="field">
-          <span>Estado</span>
-          <select formControlName="status" [class.invalid]="isInvalid('status')">
-            <option *ngFor="let status of statusOptions" [value]="status">{{ status }}</option>
+          <span>Activo</span>
+          <select formControlName="activo" [class.invalid]="isInvalid('activo')" [disabled]="!isSuperadmin">
+            <option *ngFor="let option of activeOptions" [value]="option.value">{{ option.label }}</option>
           </select>
-          <span class="error-text" *ngIf="showRequired('status')">Este campo es obligatorio.</span>
+          <span class="error-text" *ngIf="showRequired('activo')">Este campo es obligatorio.</span>
         </label>
         <label class="field full-width">
           <span>Imagen (se redimensiona automaticamente)</span>
@@ -82,10 +83,15 @@ export class MenuFormPageComponent implements OnInit {
   private snackBar = inject(MatSnackBar);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
+  private authService = inject(AuthService);
   isEdit = false;
   menuId?: string;
   dishTypes = ['ENTRADA', 'FUERTE', 'BEBIDA', 'OTRO', 'POSTRE', 'COMBO'];
-  statusOptions = ['ACTIVO', 'INACTIVO'];
+  activeOptions = [
+    { label: 'Activo', value: 'true' },
+    { label: 'Inactivo', value: 'false' }
+  ];
+  isSuperadmin = this.authService.hasRole(['SUPERADMINISTRADOR']);
   selectedImage?: File;
   imageError = '';
   imagePreview: string | null = null;
@@ -97,7 +103,7 @@ export class MenuFormPageComponent implements OnInit {
     nickname: ['', Validators.required],
     dishType: ['', Validators.required],
     price: [0, [Validators.required, Validators.min(0)]],
-    status: ['ACTIVO', Validators.required]
+    activo: [{ value: 'true', disabled: !this.isSuperadmin }, Validators.required]
   });
 
   /**
@@ -116,17 +122,17 @@ export class MenuFormPageComponent implements OnInit {
             nickname: item.nickname,
             dishType: item.dishType,
             price: item.price,
-            status: item.status
+            activo: item.activo ? 'true' : 'false'
           });
           this.existingImagePath = item.imagePath ?? null;
         },
-        error: () => this.snackBar.open('No se pudo cargar el ítem', 'Cerrar', { duration: 3000 })
+        error: () => this.snackBar.open('No se pudo cargar el item', 'Cerrar', { duration: 3000 })
       });
     }
   }
 
   /**
-   * Envía el formulario para crear o actualizar.
+   * Envia el formulario para crear o actualizar.
    */
   onSubmit() {
     if (this.form.invalid || this.imageError) {
@@ -135,13 +141,14 @@ export class MenuFormPageComponent implements OnInit {
       return;
     }
     const value = this.form.getRawValue();
+    const activeValue = value.activo === 'true';
     const payload: MenuItemRequest = {
       longDescription: value.longDescription ?? '',
       shortDescription: value.shortDescription ?? '',
       nickname: value.nickname ?? '',
       dishType: value.dishType ?? '',
       price: Number(value.price ?? 0),
-      status: value.status ?? 'ACTIVO'
+      activo: activeValue
     };
 
     const request$ = this.isEdit && this.menuId ? this.menuApi.update(this.menuId, payload) : this.menuApi.create(payload);
@@ -162,14 +169,14 @@ export class MenuFormPageComponent implements OnInit {
   }
 
   /**
-   * Regresa al listado del menú.
+   * Regresa al listado del menu.
    */
   back() {
     this.router.navigate(['/menu']);
   }
 
   /**
-   * Valida la selección de imagen.
+   * Valida la seleccion de imagen.
    *
    * @param event evento del input.
    */
@@ -198,7 +205,7 @@ export class MenuFormPageComponent implements OnInit {
   }
 
   /**
-   * Determina si el control está inválido.
+   * Determina si el control esta invalido.
    *
    * @param control nombre del control.
    */
@@ -218,7 +225,7 @@ export class MenuFormPageComponent implements OnInit {
   }
 
   /**
-   * Resuelve la URL pública de la imagen.
+   * Resuelve la URL publica de la imagen.
    *
    * @param imagePath ruta almacenada.
    */
@@ -236,7 +243,7 @@ export class MenuFormPageComponent implements OnInit {
    * Finaliza el guardado y redirige.
    */
   private finishSave() {
-    this.snackBar.open(this.isEdit ? 'Ítem actualizado' : 'Ítem creado', 'Cerrar', { duration: 3000 });
+    this.snackBar.open(this.isEdit ? 'Item actualizado' : 'Item creado', 'Cerrar', { duration: 3000 });
     this.router.navigate(['/menu']);
   }
 

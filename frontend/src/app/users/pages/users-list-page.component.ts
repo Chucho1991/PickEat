@@ -77,6 +77,12 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
                     <path d="M13.5 6.5L17.5 10.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
                   </svg>
                 </a>
+                <button class="btn btn-ghost btn-sm icon-btn" type="button" (click)="toggleActive(user)" [disabled]="user.deleted" [title]="user.activo ? 'Inactivar' : 'Activar'" [attr.aria-label]="user.activo ? 'Inactivar' : 'Activar'">
+                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M12 8V12L14.5 13.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                    <path d="M3.5 12C3.5 7.30558 7.30558 3.5 12 3.5C16.6944 3.5 20.5 7.30558 20.5 12C20.5 16.6944 16.6944 20.5 12 20.5C7.30558 20.5 3.5 16.6944 3.5 12Z" stroke="currentColor" stroke-width="1.5"></path>
+                  </svg>
+                </button>
                 <button class="btn btn-ghost btn-sm icon-btn" (click)="toggleDelete(user)" [title]="user.deleted ? 'Restaurar' : 'Eliminar'" [attr.aria-label]="user.deleted ? 'Restaurar' : 'Eliminar'">
                   <svg *ngIf="user.deleted; else deleteIcon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                     <path d="M4 12C4 7.58172 7.58172 4 12 4C13.9576 4 15.7416 4.70456 17.1189 5.875M20 12C20 16.4183 16.4183 20 12 20C10.0424 20 8.2584 19.2954 6.88111 18.125" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
@@ -193,10 +199,35 @@ export class UsersListPageComponent implements OnInit {
    * @param user usuario objetivo.
    */
   toggleDelete(user: UserDto) {
+    if (!user.deleted && !confirm('Deseas eliminar este usuario?')) {
+      return;
+    }
     const action = user.deleted ? this.usersService.restore(user.id) : this.usersService.softDelete(user.id);
     action.subscribe({
       next: () => {
         this.snackBar.open(user.deleted ? 'Usuario restaurado' : 'Usuario eliminado', 'Cerrar', { duration: 3000 });
+        this.loadUsers();
+      },
+      error: () => this.snackBar.open('No se pudo actualizar el usuario', 'Cerrar', { duration: 3000 })
+    });
+  }
+
+  /**
+   * Alterna el estado activo/inactivo.
+   *
+   * @param user usuario objetivo.
+   */
+  toggleActive(user: UserDto) {
+    const payload = {
+      nombres: user.nombres,
+      correo: user.correo,
+      username: user.username,
+      rol: user.rol,
+      activo: !user.activo
+    };
+    this.usersService.update(user.id, payload).subscribe({
+      next: () => {
+        this.snackBar.open('Estado actualizado', 'Cerrar', { duration: 3000 });
         this.loadUsers();
       },
       error: () => this.snackBar.open('No se pudo actualizar el usuario', 'Cerrar', { duration: 3000 })

@@ -5,7 +5,6 @@ import com.pickeat.domain.DishType;
 import com.pickeat.domain.MenuItem;
 import com.pickeat.domain.MenuItemId;
 import com.pickeat.domain.MenuItemImage;
-import com.pickeat.domain.MenuItemStatus;
 import com.pickeat.ports.out.MenuItemImageStoragePort;
 import com.pickeat.ports.out.MenuItemRepositoryPort;
 import org.junit.jupiter.api.Test;
@@ -36,11 +35,12 @@ class UploadMenuItemImageServiceTest {
         MenuItemId id = new MenuItemId(UUID.randomUUID());
         MenuItem existing = new MenuItem(
                 id,
-                "Descripción larga",
+                "Descripcion larga",
                 "Corta",
                 "combo",
                 DishType.COMBO,
-                MenuItemStatus.ACTIVO,
+                true,
+                false,
                 BigDecimal.valueOf(9.99),
                 null,
                 Instant.now(),

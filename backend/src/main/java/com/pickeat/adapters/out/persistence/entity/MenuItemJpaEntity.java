@@ -1,13 +1,13 @@
 package com.pickeat.adapters.out.persistence.entity;
 
 import com.pickeat.domain.DishType;
-import com.pickeat.domain.MenuItemStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import org.hibernate.annotations.SQLDelete;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -18,6 +18,7 @@ import java.util.UUID;
  */
 @Entity
 @Table(name = "menu_item")
+@SQLDelete(sql = "UPDATE menu_item SET deleted = true, active = false WHERE id = ?")
 public class MenuItemJpaEntity {
     @Id
     private UUID id;
@@ -35,9 +36,11 @@ public class MenuItemJpaEntity {
     @Column(name = "dish_type", nullable = false, length = 20)
     private DishType dishType;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false, length = 10)
-    private MenuItemStatus status;
+    @Column(name = "active", nullable = false)
+    private boolean active;
+
+    @Column(name = "deleted", nullable = false)
+    private boolean deleted;
 
     @Column(name = "price", nullable = false, precision = 10, scale = 2)
     private BigDecimal price;
@@ -146,17 +149,20 @@ public class MenuItemJpaEntity {
      *
      * @return estado.
      */
-    public MenuItemStatus getStatus() {
-        return status;
+    public boolean isActive() {
+        return active;
     }
 
-    /**
-     * Actualiza el estado.
-     *
-     * @param status estado.
-     */
-    public void setStatus(MenuItemStatus status) {
-        this.status = status;
+    public void setActive(boolean active) {
+        this.active = active;
+    }
+
+    public boolean isDeleted() {
+        return deleted;
+    }
+
+    public void setDeleted(boolean deleted) {
+        this.deleted = deleted;
     }
 
     /**

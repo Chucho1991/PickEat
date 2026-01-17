@@ -5,5 +5,5 @@ import java.util.UUID;
 /**
  * Respuesta para representar una mesa.
  */
-public record MesaResponse(UUID id, String description, int seats, String status) {
+public record MesaResponse(UUID id, String description, int seats, boolean activo, boolean deleted) {
 }

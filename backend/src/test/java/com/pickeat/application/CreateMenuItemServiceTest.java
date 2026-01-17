@@ -3,7 +3,6 @@ package com.pickeat.application;
 import com.pickeat.application.usecase.CreateMenuItemService;
 import com.pickeat.domain.DishType;
 import com.pickeat.domain.MenuItem;
-import com.pickeat.domain.MenuItemStatus;
 import com.pickeat.ports.out.MenuItemRepositoryPort;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -24,7 +23,7 @@ class CreateMenuItemServiceTest {
                 "Hamburguesa doble",
                 "hamburguesa-doble",
                 DishType.FUERTE,
-                MenuItemStatus.ACTIVO,
+                true,
                 BigDecimal.valueOf(12.5)
         );
 

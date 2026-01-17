@@ -1,9 +1,29 @@
 package com.pickeat.adapters.in.rest;
 
+import com.pickeat.adapters.in.rest.dto.MesaActiveRequest;
+import com.pickeat.adapters.in.rest.dto.MesaRequest;
 import com.pickeat.adapters.in.rest.dto.MesaResponse;
+import com.pickeat.adapters.in.rest.mapper.MesaRestMapper;
+import com.pickeat.config.SecurityUtils;
+import com.pickeat.domain.Mesa;
+import com.pickeat.domain.MesaId;
+import com.pickeat.ports.in.ChangeMesaActiveUseCase;
+import com.pickeat.ports.in.CreateMesaUseCase;
+import com.pickeat.ports.in.DeleteMesaUseCase;
+import com.pickeat.ports.in.GetMesaUseCase;
+import com.pickeat.ports.in.ListMesasUseCase;
+import com.pickeat.ports.in.UpdateMesaUseCase;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -15,20 +35,84 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/mesas")
 public class MesasController {
-    /**
-     * Entrega el listado de mesas.
-     *
-     * @return listado de mesas.
-     */
-    @GetMapping
-    public ResponseEntity<List<MesaResponse>> list() {
-        List<MesaResponse> mesas = List.of(
-                new MesaResponse(UUID.fromString("8b1a7774-2e3a-4ad3-8e1a-1a3d14a14a41"), "Terraza principal", 4, "ACTIVO"),
-                new MesaResponse(UUID.fromString("2f3a7f12-3b06-4f87-8ef0-4f7d1c2f6d64"), "Salon norte", 6, "ACTIVO"),
-                new MesaResponse(UUID.fromString("1e54093e-3385-48b8-9a60-c0a4baf0a0f1"), "Ventana", 2, "INACTIVO"),
-                new MesaResponse(UUID.fromString("c6f9c08b-4b4f-4cf4-8de8-f0a5b02f16f4"), "Privado 1", 8, "ACTIVO"),
-                new MesaResponse(UUID.fromString("96f6c1e7-8d5c-4d63-a1b5-6b0a3d3d3a1e"), "Barra", 3, "INACTIVO")
+    private final CreateMesaUseCase createMesaUseCase;
+    private final UpdateMesaUseCase updateMesaUseCase;
+    private final GetMesaUseCase getMesaUseCase;
+    private final ListMesasUseCase listMesasUseCase;
+    private final DeleteMesaUseCase deleteMesaUseCase;
+    private final ChangeMesaActiveUseCase changeMesaActiveUseCase;
+    private final MesaRestMapper mapper = new MesaRestMapper();
+
+    public MesasController(CreateMesaUseCase createMesaUseCase,
+                           UpdateMesaUseCase updateMesaUseCase,
+                           GetMesaUseCase getMesaUseCase,
+                           ListMesasUseCase listMesasUseCase,
+                           DeleteMesaUseCase deleteMesaUseCase,
+                           ChangeMesaActiveUseCase changeMesaActiveUseCase) {
+        this.createMesaUseCase = createMesaUseCase;
+        this.updateMesaUseCase = updateMesaUseCase;
+        this.getMesaUseCase = getMesaUseCase;
+        this.listMesasUseCase = listMesasUseCase;
+        this.deleteMesaUseCase = deleteMesaUseCase;
+        this.changeMesaActiveUseCase = changeMesaActiveUseCase;
+    }
+
+    @PostMapping
+    public ResponseEntity<MesaResponse> create(@Valid @RequestBody MesaRequest request) {
+        return ResponseEntity.ok(mapper.toResponse(createMesaUseCase.create(mapper.toDomain(request))));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<MesaResponse> update(@PathVariable("id") UUID id,
+                                               @Valid @RequestBody MesaRequest request) {
+        if (!isSuperadmin()) {
+            Mesa existing = getMesaUseCase.getById(new MesaId(id));
+            if (existing.isDeleted()) {
+                return ResponseEntity.notFound().build();
+            }
+            request.setActivo(existing.isActive());
+        }
+        return ResponseEntity.ok(
+                mapper.toResponse(updateMesaUseCase.update(new MesaId(id), mapper.toUpdateDomain(request)))
         );
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<MesaResponse> getById(@PathVariable("id") UUID id) {
+        MesaResponse response = mapper.toResponse(getMesaUseCase.getById(new MesaId(id)));
+        if (response.deleted() && !isSuperadmin()) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping
+    public ResponseEntity<List<MesaResponse>> list(@RequestParam(value = "includeDeleted", required = false) Boolean includeDeleted) {
+        boolean includeDeletedResolved = Boolean.TRUE.equals(includeDeleted) && isSuperadmin();
+        List<MesaResponse> mesas = listMesasUseCase.list(includeDeletedResolved)
+                .stream()
+                .map(mapper::toResponse)
+                .toList();
         return ResponseEntity.ok(mesas);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable("id") UUID id) {
+        deleteMesaUseCase.delete(new MesaId(id));
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{id}/active")
+    @PreAuthorize("hasRole('SUPERADMINISTRADOR')")
+    public ResponseEntity<MesaResponse> changeActive(@PathVariable("id") UUID id,
+                                                     @Valid @RequestBody MesaActiveRequest request) {
+        return ResponseEntity.ok(
+                mapper.toResponse(changeMesaActiveUseCase.changeActive(new MesaId(id),
+                        Boolean.TRUE.equals(request.getActivo())))
+        );
+    }
+
+    private boolean isSuperadmin() {
+        return "SUPERADMINISTRADOR".equals(SecurityUtils.currentRole());
     }
 }

@@ -1,15 +1,17 @@
 package com.pickeat.adapters.in.rest;
 
+import com.pickeat.adapters.in.rest.dto.MenuItemActiveRequest;
 import com.pickeat.adapters.in.rest.dto.MenuItemRequest;
 import com.pickeat.adapters.in.rest.dto.MenuItemResponse;
-import com.pickeat.adapters.in.rest.dto.MenuItemStatusRequest;
 import com.pickeat.adapters.in.rest.mapper.MenuItemRestMapper;
+import com.pickeat.config.SecurityUtils;
 import com.pickeat.domain.DishType;
+import com.pickeat.domain.MenuItem;
 import com.pickeat.domain.MenuItemId;
 import com.pickeat.domain.MenuItemImage;
-import com.pickeat.domain.MenuItemStatus;
-import com.pickeat.ports.in.ChangeMenuItemStatusUseCase;
+import com.pickeat.ports.in.ChangeMenuItemActiveUseCase;
 import com.pickeat.ports.in.CreateMenuItemUseCase;
+import com.pickeat.ports.in.DeleteMenuItemUseCase;
 import com.pickeat.ports.in.GetMenuItemUseCase;
 import com.pickeat.ports.in.ListMenuItemsUseCase;
 import com.pickeat.ports.in.UpdateMenuItemUseCase;
@@ -17,6 +19,8 @@ import com.pickeat.ports.in.UploadMenuItemImageUseCase;
 import jakarta.validation.Valid;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -32,7 +36,7 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * Controlador REST para la administración del menú.
+ * Controlador REST para la administracion del menu.
  */
 @RestController
 @RequestMapping("/menu-items")
@@ -41,112 +45,85 @@ public class MenuItemsController {
     private final UpdateMenuItemUseCase updateMenuItemUseCase;
     private final GetMenuItemUseCase getMenuItemUseCase;
     private final ListMenuItemsUseCase listMenuItemsUseCase;
-    private final ChangeMenuItemStatusUseCase changeMenuItemStatusUseCase;
+    private final ChangeMenuItemActiveUseCase changeMenuItemActiveUseCase;
+    private final DeleteMenuItemUseCase deleteMenuItemUseCase;
     private final UploadMenuItemImageUseCase uploadMenuItemImageUseCase;
     private final MenuItemRestMapper mapper = new MenuItemRestMapper();
 
-    /**
-     * Construye el controlador con sus dependencias.
-     *
-     * @param createMenuItemUseCase caso de uso de creación.
-     * @param updateMenuItemUseCase caso de uso de actualización.
-     * @param getMenuItemUseCase caso de uso de consulta.
-     * @param listMenuItemsUseCase caso de uso de listado.
-     * @param changeMenuItemStatusUseCase caso de uso de estado.
-     * @param uploadMenuItemImageUseCase caso de uso de imagen.
-     */
     public MenuItemsController(CreateMenuItemUseCase createMenuItemUseCase,
                                UpdateMenuItemUseCase updateMenuItemUseCase,
                                GetMenuItemUseCase getMenuItemUseCase,
                                ListMenuItemsUseCase listMenuItemsUseCase,
-                               ChangeMenuItemStatusUseCase changeMenuItemStatusUseCase,
+                               ChangeMenuItemActiveUseCase changeMenuItemActiveUseCase,
+                               DeleteMenuItemUseCase deleteMenuItemUseCase,
                                UploadMenuItemImageUseCase uploadMenuItemImageUseCase) {
         this.createMenuItemUseCase = createMenuItemUseCase;
         this.updateMenuItemUseCase = updateMenuItemUseCase;
         this.getMenuItemUseCase = getMenuItemUseCase;
         this.listMenuItemsUseCase = listMenuItemsUseCase;
-        this.changeMenuItemStatusUseCase = changeMenuItemStatusUseCase;
+        this.changeMenuItemActiveUseCase = changeMenuItemActiveUseCase;
+        this.deleteMenuItemUseCase = deleteMenuItemUseCase;
         this.uploadMenuItemImageUseCase = uploadMenuItemImageUseCase;
     }
 
-    /**
-     * Crea un ítem del menú.
-     *
-     * @param request datos del ítem.
-     * @return respuesta con el ítem creado.
-     */
     @PostMapping
     public ResponseEntity<MenuItemResponse> create(@Valid @RequestBody MenuItemRequest request) {
         return ResponseEntity.ok(mapper.toResponse(createMenuItemUseCase.create(mapper.toDomain(request))));
     }
 
-    /**
-     * Actualiza un ítem del menú.
-     *
-     * @param id identificador.
-     * @param request datos actualizados.
-     * @return respuesta con el ítem actualizado.
-     */
     @PutMapping("/{id}")
     public ResponseEntity<MenuItemResponse> update(@PathVariable("id") UUID id,
                                                    @Valid @RequestBody MenuItemRequest request) {
+        if (!isSuperadmin()) {
+            MenuItem existing = getMenuItemUseCase.getById(new MenuItemId(id));
+            if (existing.isDeleted()) {
+                return ResponseEntity.notFound().build();
+            }
+            request.setActivo(existing.isActive());
+        }
         return ResponseEntity.ok(
                 mapper.toResponse(updateMenuItemUseCase.update(new MenuItemId(id), mapper.toUpdateDomain(request)))
         );
     }
 
-    /**
-     * Obtiene un ítem por id.
-     *
-     * @param id identificador.
-     * @return respuesta con el ítem.
-     */
     @GetMapping("/{id}")
     public ResponseEntity<MenuItemResponse> getById(@PathVariable("id") UUID id) {
-        return ResponseEntity.ok(mapper.toResponse(getMenuItemUseCase.getById(new MenuItemId(id))));
+        MenuItemResponse response = mapper.toResponse(getMenuItemUseCase.getById(new MenuItemId(id)));
+        if (response.isDeleted() && !isSuperadmin()) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(response);
     }
 
-    /**
-     * Lista ítems del menú con filtros.
-     *
-     * @param dishType filtro por tipo.
-     * @param status filtro por estado.
-     * @param search búsqueda libre.
-     * @return listado de ítems.
-     */
     @GetMapping
     public ResponseEntity<List<MenuItemResponse>> list(@RequestParam(value = "dishType", required = false) DishType dishType,
-                                                       @RequestParam(value = "status", required = false) MenuItemStatus status,
-                                                       @RequestParam(value = "search", required = false) String search) {
-        List<MenuItemResponse> items = listMenuItemsUseCase.list(dishType, status, search)
+                                                       @RequestParam(value = "activo", required = false) Boolean activo,
+                                                       @RequestParam(value = "search", required = false) String search,
+                                                       @RequestParam(value = "includeDeleted", required = false) Boolean includeDeleted) {
+        boolean includeDeletedResolved = Boolean.TRUE.equals(includeDeleted) && isSuperadmin();
+        List<MenuItemResponse> items = listMenuItemsUseCase.list(dishType, activo, search, includeDeletedResolved)
                 .stream()
                 .map(mapper::toResponse)
                 .toList();
         return ResponseEntity.ok(items);
     }
 
-    /**
-     * Cambia el estado del ítem.
-     *
-     * @param id identificador.
-     * @param request solicitud de estado.
-     * @return ítem actualizado.
-     */
-    @PostMapping("/{id}/status")
-    public ResponseEntity<MenuItemResponse> changeStatus(@PathVariable("id") UUID id,
-                                                         @Valid @RequestBody MenuItemStatusRequest request) {
+    @PostMapping("/{id}/active")
+    @PreAuthorize("hasRole('SUPERADMINISTRADOR')")
+    public ResponseEntity<MenuItemResponse> changeActive(@PathVariable("id") UUID id,
+                                                         @Valid @RequestBody MenuItemActiveRequest request) {
         return ResponseEntity.ok(
-                mapper.toResponse(changeMenuItemStatusUseCase.changeStatus(new MenuItemId(id), request.getStatus()))
+                mapper.toResponse(changeMenuItemActiveUseCase.changeActive(new MenuItemId(id),
+                        Boolean.TRUE.equals(request.getActivo())))
         );
     }
 
-    /**
-     * Carga la imagen del ítem.
-     *
-     * @param id identificador del ítem.
-     * @param file archivo subido.
-     * @return ítem actualizado.
-     */
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable("id") UUID id) {
+        deleteMenuItemUseCase.delete(new MenuItemId(id));
+        return ResponseEntity.noContent().build();
+    }
+
     @PostMapping(value = "/{id}/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<MenuItemResponse> uploadImage(@PathVariable("id") UUID id,
                                                         @RequestParam("file") MultipartFile file) {
@@ -161,5 +138,9 @@ public class MenuItemsController {
         } catch (IOException ex) {
             throw new IllegalArgumentException("No se pudo leer la imagen.");
         }
+    }
+
+    private boolean isSuperadmin() {
+        return "SUPERADMINISTRADOR".equals(SecurityUtils.currentRole());
     }
 }

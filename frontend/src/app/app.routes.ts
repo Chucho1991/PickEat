@@ -9,6 +9,7 @@ import { UserDetailPageComponent } from './users/pages/user-detail-page.componen
 import { UserFormPageComponent } from './users/pages/user-form-page.component';
 import { ProfilePageComponent } from './users/pages/profile-page.component';
 import { PlaceholderPageComponent } from './placeholders/pages/placeholder-page.component';
+import { MesasListPageComponent } from './mesas/pages/mesas-list-page.component';
 import { MenuListPageComponent } from './menu/pages/menu-list-page.component';
 import { MenuFormPageComponent } from './menu/pages/menu-form-page.component';
 
@@ -44,9 +45,12 @@ export const routes: Routes = [
   { path: 'profile', component: ProfilePageComponent, canActivate: [AuthGuard] },
   {
     path: 'mesas',
-    component: PlaceholderPageComponent,
     canActivate: [AuthGuard],
-    data: { title: 'Mesas' }
+    data: { title: 'Mesas' },
+    children: [
+      { path: '', redirectTo: 'configuracion', pathMatch: 'full' },
+      { path: 'configuracion', component: MesasListPageComponent }
+    ]
   },
   {
     path: 'menu',

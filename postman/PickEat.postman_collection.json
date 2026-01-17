@@ -23,6 +23,10 @@
     {
       "key": "menuItemId",
       "value": ""
+    },
+    {
+      "key": "mesaId",
+      "value": ""
     }
   ],
   "auth": {
@@ -139,21 +143,6 @@
               ],
               "path": [
                 "menu"
-              ]
-            }
-          }
-        },
-        {
-          "name": "GET /mesas",
-          "request": {
-            "method": "GET",
-            "url": {
-              "raw": "{{baseUrl}}/mesas",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "mesas"
               ]
             }
           }
@@ -443,6 +432,160 @@
       ]
     },
     {
+      "name": "Mesas",
+      "item": [
+        {
+          "name": "POST /mesas",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"description\":\"Mesa 1\",\"seats\":4,\"activo\":true}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/mesas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "mesas"
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /mesas",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/mesas?includeDeleted=",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "mesas"
+              ],
+              "query": [
+                {
+                  "key": "includeDeleted",
+                  "value": "",
+                  "description": "Optional include deleted (superadmin only)"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /mesas/{id}",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/mesas/{{mesaId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "mesas",
+                "{{mesaId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "PUT /mesas/{id}",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"description\":\"Mesa 1\",\"seats\":4,\"activo\":true}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/mesas/{{mesaId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "mesas",
+                "{{mesaId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "DELETE /mesas/{id}",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/mesas/{{mesaId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "mesas",
+                "{{mesaId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST /mesas/{id}/restore",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/mesas/{{mesaId}}/restore",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "mesas",
+                "{{mesaId}}",
+                "restore"
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST /mesas/{id}/active",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"activo\":true}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/mesas/{{mesaId}}/active",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "mesas",
+                "{{mesaId}}",
+                "active"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
       "name": "Menu Items",
       "item": [
         {
@@ -457,7 +600,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\"longDescription\":\"Pizza familiar\",\"shortDescription\":\"Pizza\",\"nickname\":\"PIZZA\",\"dishType\":\"PLATO_FUERTE\",\"status\":\"ACTIVO\",\"price\":12.5}"
+              "raw": "{\"longDescription\":\"Pizza familiar\",\"shortDescription\":\"Pizza\",\"nickname\":\"PIZZA\",\"dishType\":\"PLATO_FUERTE\",\"activo\":true,\"price\":12.5}"
             },
             "url": {
               "raw": "{{baseUrl}}/menu-items",
@@ -475,7 +618,7 @@
           "request": {
             "method": "GET",
             "url": {
-              "raw": "{{baseUrl}}/menu-items?dishType=&status=&search=",
+              "raw": "{{baseUrl}}/menu-items?dishType=&activo=&search=&includeDeleted=",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -488,11 +631,15 @@
                   "value": ""
                 },
                 {
-                  "key": "status",
+                  "key": "activo",
                   "value": ""
                 },
                 {
                   "key": "search",
+                  "value": ""
+                },
+                {
+                  "key": "includeDeleted",
                   "value": ""
                 }
               ]
@@ -527,7 +674,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\"longDescription\":\"Pizza familiar\",\"shortDescription\":\"Pizza\",\"nickname\":\"PIZZA\",\"dishType\":\"PLATO_FUERTE\",\"status\":\"ACTIVO\",\"price\":12.5}"
+              "raw": "{\"longDescription\":\"Pizza familiar\",\"shortDescription\":\"Pizza\",\"nickname\":\"PIZZA\",\"dishType\":\"PLATO_FUERTE\",\"activo\":true,\"price\":12.5}"
             },
             "url": {
               "raw": "{{baseUrl}}/menu-items/{{menuItemId}}",
@@ -542,7 +689,7 @@
           }
         },
         {
-          "name": "POST /menu-items/{id}/status",
+          "name": "POST /menu-items/{id}/active",
           "request": {
             "method": "POST",
             "header": [
@@ -553,17 +700,50 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\"status\":\"ACTIVO\"}"
+              "raw": "{\"activo\":true}"
             },
             "url": {
-              "raw": "{{baseUrl}}/menu-items/{{menuItemId}}/status",
+              "raw": "{{baseUrl}}/menu-items/{{menuItemId}}/active",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "menu-items",
                 "{{menuItemId}}",
-                "status"
+                "active"
+              ]
+            }
+          }
+        },
+        {
+          "name": "DELETE /menu-items/{id}",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/menu-items/{{menuItemId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "menu-items",
+                "{{menuItemId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST /menu-items/{id}/restore",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/menu-items/{{menuItemId}}/restore",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "menu-items",
+                "{{menuItemId}}",
+                "restore"
               ]
             }
           }

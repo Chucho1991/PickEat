@@ -14,6 +14,7 @@ import com.pickeat.ports.in.CreateMenuItemUseCase;
 import com.pickeat.ports.in.DeleteMenuItemUseCase;
 import com.pickeat.ports.in.GetMenuItemUseCase;
 import com.pickeat.ports.in.ListMenuItemsUseCase;
+import com.pickeat.ports.in.RestoreMenuItemUseCase;
 import com.pickeat.ports.in.UpdateMenuItemUseCase;
 import com.pickeat.ports.in.UploadMenuItemImageUseCase;
 import jakarta.validation.Valid;
@@ -47,6 +48,7 @@ public class MenuItemsController {
     private final ListMenuItemsUseCase listMenuItemsUseCase;
     private final ChangeMenuItemActiveUseCase changeMenuItemActiveUseCase;
     private final DeleteMenuItemUseCase deleteMenuItemUseCase;
+    private final RestoreMenuItemUseCase restoreMenuItemUseCase;
     private final UploadMenuItemImageUseCase uploadMenuItemImageUseCase;
     private final MenuItemRestMapper mapper = new MenuItemRestMapper();
 
@@ -56,6 +58,7 @@ public class MenuItemsController {
                                ListMenuItemsUseCase listMenuItemsUseCase,
                                ChangeMenuItemActiveUseCase changeMenuItemActiveUseCase,
                                DeleteMenuItemUseCase deleteMenuItemUseCase,
+                               RestoreMenuItemUseCase restoreMenuItemUseCase,
                                UploadMenuItemImageUseCase uploadMenuItemImageUseCase) {
         this.createMenuItemUseCase = createMenuItemUseCase;
         this.updateMenuItemUseCase = updateMenuItemUseCase;
@@ -63,6 +66,7 @@ public class MenuItemsController {
         this.listMenuItemsUseCase = listMenuItemsUseCase;
         this.changeMenuItemActiveUseCase = changeMenuItemActiveUseCase;
         this.deleteMenuItemUseCase = deleteMenuItemUseCase;
+        this.restoreMenuItemUseCase = restoreMenuItemUseCase;
         this.uploadMenuItemImageUseCase = uploadMenuItemImageUseCase;
     }
 
@@ -122,6 +126,17 @@ public class MenuItemsController {
     public ResponseEntity<Void> delete(@PathVariable("id") UUID id) {
         deleteMenuItemUseCase.delete(new MenuItemId(id));
         return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * Restaura un item del menu eliminado lógicamente.
+     *
+     * @param id identificador del item.
+     * @return respuesta con el item restaurado.
+     */
+    @PostMapping("/{id}/restore")
+    public ResponseEntity<MenuItemResponse> restore(@PathVariable("id") UUID id) {
+        return ResponseEntity.ok(mapper.toResponse(restoreMenuItemUseCase.restore(new MenuItemId(id))));
     }
 
     @PostMapping(value = "/{id}/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

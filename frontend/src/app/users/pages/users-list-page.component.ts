@@ -60,9 +60,12 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
               <td>{{ user.correo }}</td>
               <td><span class="badge badge-info">{{ user.rol }}</span></td>
               <td>
-                <span class="badge" [class.badge-success]="user.activo" [class.badge-muted]="!user.activo">
-                  {{ user.activo ? 'Activo' : 'Inactivo' }}
-                </span>
+                <span class="badge badge-danger" *ngIf="user.deleted; else activeBadge">Eliminado</span>
+                <ng-template #activeBadge>
+                  <span class="badge" [class.badge-success]="user.activo" [class.badge-muted]="!user.activo">
+                    {{ user.activo ? 'Activo' : 'Inactivo' }}
+                  </span>
+                </ng-template>
               </td>
               <td class="text-right">
                 <a class="btn btn-ghost btn-sm icon-btn" [routerLink]="['/users', user.id]" title="Ver" aria-label="Ver">

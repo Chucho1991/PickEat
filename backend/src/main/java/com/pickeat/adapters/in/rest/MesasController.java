@@ -12,6 +12,7 @@ import com.pickeat.ports.in.CreateMesaUseCase;
 import com.pickeat.ports.in.DeleteMesaUseCase;
 import com.pickeat.ports.in.GetMesaUseCase;
 import com.pickeat.ports.in.ListMesasUseCase;
+import com.pickeat.ports.in.RestoreMesaUseCase;
 import com.pickeat.ports.in.UpdateMesaUseCase;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -40,6 +41,7 @@ public class MesasController {
     private final GetMesaUseCase getMesaUseCase;
     private final ListMesasUseCase listMesasUseCase;
     private final DeleteMesaUseCase deleteMesaUseCase;
+    private final RestoreMesaUseCase restoreMesaUseCase;
     private final ChangeMesaActiveUseCase changeMesaActiveUseCase;
     private final MesaRestMapper mapper = new MesaRestMapper();
 
@@ -48,12 +50,14 @@ public class MesasController {
                            GetMesaUseCase getMesaUseCase,
                            ListMesasUseCase listMesasUseCase,
                            DeleteMesaUseCase deleteMesaUseCase,
+                           RestoreMesaUseCase restoreMesaUseCase,
                            ChangeMesaActiveUseCase changeMesaActiveUseCase) {
         this.createMesaUseCase = createMesaUseCase;
         this.updateMesaUseCase = updateMesaUseCase;
         this.getMesaUseCase = getMesaUseCase;
         this.listMesasUseCase = listMesasUseCase;
         this.deleteMesaUseCase = deleteMesaUseCase;
+        this.restoreMesaUseCase = restoreMesaUseCase;
         this.changeMesaActiveUseCase = changeMesaActiveUseCase;
     }
 
@@ -100,6 +104,17 @@ public class MesasController {
     public ResponseEntity<Void> delete(@PathVariable("id") UUID id) {
         deleteMesaUseCase.delete(new MesaId(id));
         return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * Restaura una mesa eliminada lógicamente.
+     *
+     * @param id identificador de la mesa.
+     * @return respuesta con la mesa restaurada.
+     */
+    @PostMapping("/{id}/restore")
+    public ResponseEntity<MesaResponse> restore(@PathVariable("id") UUID id) {
+        return ResponseEntity.ok(mapper.toResponse(restoreMesaUseCase.restore(new MesaId(id))));
     }
 
     @PostMapping("/{id}/active")

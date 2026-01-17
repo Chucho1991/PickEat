@@ -98,6 +98,13 @@ export class MenuApiService {
   }
 
   /**
+   * Restaura un item eliminado lógicamente.
+   */
+  restore(id: string): Observable<MenuItemDto> {
+    return this.http.post<MenuItemDto>(`${this.baseUrl}/${id}/restore`, {});
+  }
+
+  /**
    * Sube una imagen para el item.
    */
   uploadImage(id: string, file: File): Observable<MenuItemDto> {

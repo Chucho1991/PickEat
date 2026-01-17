@@ -95,20 +95,27 @@ import { debounceTime, distinctUntilChanged, map, takeUntil } from 'rxjs/operato
                     <path d="M13.5 6.5L17.5 10.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
                   </svg>
                 </a>
-                <button class="btn btn-ghost btn-sm icon-btn" type="button" (click)="toggleActive(item)" [disabled]="!isSuperadmin" [title]="item.activo ? 'Inactivar' : 'Activar'" [attr.aria-label]="item.activo ? 'Inactivar' : 'Activar'">
+                <button class="btn btn-ghost btn-sm icon-btn" type="button" (click)="toggleActive(item)" [disabled]="!isSuperadmin || item.deleted" [title]="item.activo ? 'Inactivar' : 'Activar'" [attr.aria-label]="item.activo ? 'Inactivar' : 'Activar'">
                   <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
                     <path d="M12 8V12L14.5 13.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
                     <path d="M3.5 12C3.5 7.30558 7.30558 3.5 12 3.5C16.6944 3.5 20.5 7.30558 20.5 12C20.5 16.6944 16.6944 20.5 12 20.5C7.30558 20.5 3.5 16.6944 3.5 12Z" stroke="currentColor" stroke-width="1.5"></path>
                   </svg>
                 </button>
-                <button class="btn btn-ghost btn-sm icon-btn" type="button" (click)="deleteItem(item)" title="Eliminar" aria-label="Eliminar">
-                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                    <path d="M4 7H20" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path>
-                    <path d="M10 11V17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path>
-                    <path d="M14 11V17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path>
-                    <path d="M6 7L7 19H17L18 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-                    <path d="M9 7V5H15V7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                <button class="btn btn-ghost btn-sm icon-btn" type="button" (click)="toggleDelete(item)" [title]="item.deleted ? 'Restaurar' : 'Eliminar'" [attr.aria-label]="item.deleted ? 'Restaurar' : 'Eliminar'">
+                  <svg *ngIf="item.deleted; else deleteIcon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M4 12C4 7.58172 7.58172 4 12 4C13.9576 4 15.7416 4.70456 17.1189 5.875M20 12C20 16.4183 16.4183 20 12 20C10.0424 20 8.2584 19.2954 6.88111 18.125" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                    <path d="M7 6V10H3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                    <path d="M17 14V18H21" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
                   </svg>
+                  <ng-template #deleteIcon>
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                      <path d="M4 7H20" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path>
+                      <path d="M10 11V17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path>
+                      <path d="M14 11V17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path>
+                      <path d="M6 7L7 19H17L18 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                      <path d="M9 7V5H15V7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                    </svg>
+                  </ng-template>
                 </button>
               </td>
             </tr>
@@ -198,21 +205,21 @@ export class MenuListPageComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Elimina el item de forma logica.
+   * Alterna entre eliminar y restaurar un item.
    *
    * @param item item objetivo.
    */
-  deleteItem(item: MenuItemDto) {
-    const confirmed = window.confirm(`Eliminar el item ${item.nickname}?`);
-    if (!confirmed) {
+  toggleDelete(item: MenuItemDto) {
+    if (!item.deleted && !confirm(`Eliminar el item ${item.nickname}?`)) {
       return;
     }
-    this.menuApi.delete(item.id).subscribe({
+    const action = item.deleted ? this.menuApi.restore(item.id) : this.menuApi.delete(item.id);
+    action.subscribe({
       next: () => {
-        this.snackBar.open('Item eliminado', 'Cerrar', { duration: 3000 });
+        this.snackBar.open(item.deleted ? 'Item restaurado' : 'Item eliminado', 'Cerrar', { duration: 3000 });
         this.loadItems();
       },
-      error: (error) => this.snackBar.open(error?.error?.error || 'No se pudo eliminar', 'Cerrar', { duration: 3000 })
+      error: (error) => this.snackBar.open(error?.error?.error || 'No se pudo actualizar el item', 'Cerrar', { duration: 3000 })
     });
   }
 

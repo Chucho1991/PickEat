@@ -45,9 +45,12 @@ export const routes: Routes = [
   { path: 'profile', component: ProfilePageComponent, canActivate: [AuthGuard] },
   {
     path: 'mesas',
-    component: MesasListPageComponent,
     canActivate: [AuthGuard],
-    data: { title: 'Mesas' }
+    data: { title: 'Mesas' },
+    children: [
+      { path: '', redirectTo: 'configuracion', pathMatch: 'full' },
+      { path: 'configuracion', component: MesasListPageComponent }
+    ]
   },
   {
     path: 'menu',

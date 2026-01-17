@@ -13,8 +13,8 @@ import { MesasApiService, MesaDto } from '../../core/services/mesas-api.service'
   template: `
     <div class="page-header">
       <div>
-        <h2 class="page-title">Mesas</h2>
-        <p class="page-subtitle">Gestiona la distribución y disponibilidad del salón.</p>
+        <h2 class="page-title">Configuración de mesas</h2>
+        <p class="page-subtitle">Administra la distribución, las sillas y el estado de cada mesa.</p>
       </div>
     </div>
 

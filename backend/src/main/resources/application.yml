@@ -30,3 +30,4 @@ app:
 logging:
   level:
     org.springframework.security: DEBUG
+    com.pickeat.config.ApiAuditFilter: INFO

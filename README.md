@@ -1,6 +1,6 @@
 # PickEat
 
-Aplicación para toma de órdenes en restaurante/cafetería/delicatessen.
+Aplicacion para toma de ordenes en restaurante/cafeteria/delicatessen.
 
 ## Servicios
 - Frontend (Angular): http://localhost:4200
@@ -24,32 +24,34 @@ cp .env.example .env
 docker compose up --build
 ```
 
-## Módulos
-- **Usuarios**: completo (auth, CRUD, perfil, soft delete, restore, delete físico con rol SUPERADMINISTRADOR).
-- **Mesas/Menú/Órdenes/Despachador**: rutas placeholder con "Coming soon".
+## Modulos
+- **Usuarios**: completo (auth, CRUD, perfil, soft delete, restore, delete fisico con rol SUPERADMINISTRADOR).
+- **Mesas/Menu**: CRUD base con activacion y eliminacion logica.
+- **Ordenes**: creacion con calculo de totales en vivo y configuracion por parametros.
+- **Despachador**: rutas placeholder con "Coming soon".
 
-## Gestión de usuarios
+## Gestion de usuarios
 - Solo roles **ADMINISTRADOR** y **SUPERADMINISTRADOR** pueden crear/listar usuarios.
-- En creación de usuarios se requiere contraseña y confirmación (mínimo 8 caracteres).
+- En creacion de usuarios se requiere contrasena y confirmacion (minimo 8 caracteres).
 - Los roles disponibles: `SUPERADMINISTRADOR`, `ADMINISTRADOR`, `MESERO`, `DESPACHADOR`.
 
 ## Endpoints principales (Usuarios)
 - `POST /auth/login`
-- `GET /users` (paginación y filtros: `rol`, `activo`, `deleted`)
+- `GET /users` (paginacion y filtros: `rol`, `activo`, `deleted`)
 - `POST /users`
 - `GET /users/{id}`
 - `PUT /users/{id}`
 - `POST /users/{id}/soft-delete`
 - `POST /users/{id}/restore`
-- `DELETE /users/{id}` (solo SUPERADMINISTRADOR, eliminación física)
+- `DELETE /users/{id}` (solo SUPERADMINISTRADOR, eliminacion fisica)
 - `GET /users/me`
 - `PUT /users/me`
 - `GET /dashboard` (solo ADMIN/SUPERADMIN)
 
 ## Soft delete
-- Por defecto, los usuarios se eliminan de forma lógica.
-- La eliminación física es excepcional y solo para SUPERADMINISTRADOR.
+- Por defecto, los usuarios se eliminan de forma logica.
+- La eliminacion fisica es excepcional y solo para SUPERADMINISTRADOR.
 
-## Auditorías
+## Auditorias
 - `api_audit_log`: registra request/response con truncado configurable (`AUDIT_MAX_PAYLOAD_SIZE`).
-- `action_audit_log`: registra LOGIN exitoso, creación, edición, eliminación lógica y física.
+- `action_audit_log`: registra LOGIN exitoso, creacion, edicion, eliminacion logica y fisica.

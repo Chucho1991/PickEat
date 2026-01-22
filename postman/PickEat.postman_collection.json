@@ -27,6 +27,10 @@
     {
       "key": "mesaId",
       "value": ""
+    },
+    {
+      "key": "orderId",
+      "value": ""
     }
   ],
   "auth": {
@@ -146,11 +150,42 @@
               ]
             }
           }
-        },
+        }
+      ]
+    },
+    {
+      "name": "Ordenes",
+      "item": [
         {
-          "name": "GET /ordenes",
+          "name": "GET /ordenes/configuracion",
           "request": {
             "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/ordenes/configuracion",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "ordenes",
+                "configuracion"
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST /ordenes",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"mesaId\":\"{{mesaId}}\",\"items\":[{\"menuItemId\":\"{{menuItemId}}\",\"quantity\":2}]}"
+            },
             "url": {
               "raw": "{{baseUrl}}/ordenes",
               "host": [
@@ -158,6 +193,22 @@
               ],
               "path": [
                 "ordenes"
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /ordenes/{id}",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/ordenes/{{orderId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "ordenes",
+                "{{orderId}}"
               ]
             }
           }

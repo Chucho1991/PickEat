@@ -13,6 +13,7 @@ import { MesasListPageComponent } from './mesas/pages/mesas-list-page.component'
 import { MesasFormPageComponent } from './mesas/pages/mesas-form-page.component';
 import { MenuListPageComponent } from './menu/pages/menu-list-page.component';
 import { MenuFormPageComponent } from './menu/pages/menu-form-page.component';
+import { OrdersPageComponent } from './orders/pages/orders-page.component';
 
 /**
  * Definición de rutas principales de la aplicación.
@@ -67,7 +68,7 @@ export const routes: Routes = [
   },
   {
     path: 'ordenes',
-    component: PlaceholderPageComponent,
+    component: OrdersPageComponent,
     canActivate: [AuthGuard],
     data: { title: 'Ordenes' }
   },

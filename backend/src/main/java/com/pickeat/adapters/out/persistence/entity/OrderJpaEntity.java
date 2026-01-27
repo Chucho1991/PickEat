@@ -38,6 +38,9 @@ public class OrderJpaEntity {
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<OrderItemJpaEntity> items = new ArrayList<>();
 
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<OrderDiscountItemJpaEntity> discountItems = new ArrayList<>();
+
     @Column(name = "subtotal", nullable = false, precision = 10, scale = 2)
     private BigDecimal subtotal;
 
@@ -112,6 +115,14 @@ public class OrderJpaEntity {
 
     public void setItems(List<OrderItemJpaEntity> items) {
         this.items = items;
+    }
+
+    public List<OrderDiscountItemJpaEntity> getDiscountItems() {
+        return discountItems;
+    }
+
+    public void setDiscountItems(List<OrderDiscountItemJpaEntity> discountItems) {
+        this.discountItems = discountItems;
     }
 
     public BigDecimal getSubtotal() {

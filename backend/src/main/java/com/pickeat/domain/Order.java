@@ -13,6 +13,7 @@ public class Order {
     private MesaId mesaId;
     private OrderChannelId channelId;
     private List<OrderItem> items;
+    private List<OrderDiscountItem> discountItems;
     private BigDecimal subtotal;
     private BigDecimal taxAmount;
     private BigDecimal tipAmount;
@@ -31,6 +32,7 @@ public class Order {
                  MesaId mesaId,
                  OrderChannelId channelId,
                  List<OrderItem> items,
+                 List<OrderDiscountItem> discountItems,
                  BigDecimal subtotal,
                  BigDecimal taxAmount,
                  BigDecimal tipAmount,
@@ -48,6 +50,7 @@ public class Order {
         this.mesaId = mesaId;
         this.channelId = channelId;
         this.items = items;
+        this.discountItems = discountItems;
         this.subtotal = subtotal;
         this.taxAmount = taxAmount;
         this.tipAmount = tipAmount;
@@ -65,6 +68,7 @@ public class Order {
     public static Order createNew(MesaId mesaId,
                                   OrderChannelId channelId,
                                   List<OrderItem> items,
+                                  List<OrderDiscountItem> discountItems,
                                   BigDecimal subtotal,
                                   BigDecimal taxAmount,
                                   BigDecimal tipAmount,
@@ -79,6 +83,7 @@ public class Order {
                 mesaId,
                 channelId,
                 items,
+                discountItems,
                 subtotal,
                 taxAmount,
                 tipAmount,
@@ -132,6 +137,14 @@ public class Order {
 
     public void setItems(List<OrderItem> items) {
         this.items = items;
+    }
+
+    public List<OrderDiscountItem> getDiscountItems() {
+        return discountItems;
+    }
+
+    public void setDiscountItems(List<OrderDiscountItem> discountItems) {
+        this.discountItems = discountItems;
     }
 
     public BigDecimal getSubtotal() {

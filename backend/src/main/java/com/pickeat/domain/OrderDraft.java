@@ -8,6 +8,7 @@ import java.util.List;
 public class OrderDraft {
     private MesaId mesaId;
     private List<OrderItemDraft> items;
+    private List<OrderDiscountDraft> discountItems;
     private OrderChannelId channelId;
     private TipType tipType;
     private java.math.BigDecimal tipValue;
@@ -15,12 +16,14 @@ public class OrderDraft {
 
     public OrderDraft(MesaId mesaId,
                       List<OrderItemDraft> items,
+                      List<OrderDiscountDraft> discountItems,
                       OrderChannelId channelId,
                       TipType tipType,
                       java.math.BigDecimal tipValue,
                       Boolean tipEnabled) {
         this.mesaId = mesaId;
         this.items = items;
+        this.discountItems = discountItems;
         this.channelId = channelId;
         this.tipType = tipType;
         this.tipValue = tipValue;
@@ -41,6 +44,14 @@ public class OrderDraft {
 
     public void setItems(List<OrderItemDraft> items) {
         this.items = items;
+    }
+
+    public List<OrderDiscountDraft> getDiscountItems() {
+        return discountItems;
+    }
+
+    public void setDiscountItems(List<OrderDiscountDraft> discountItems) {
+        this.discountItems = discountItems;
     }
 
     public OrderChannelId getChannelId() {

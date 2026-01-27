@@ -10,6 +10,8 @@ import com.pickeat.adapters.in.rest.mapper.OrderRestMapper;
 import com.pickeat.domain.Order;
 import com.pickeat.domain.OrderId;
 import com.pickeat.domain.OrderStatus;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import com.pickeat.ports.in.ChangeOrderActiveUseCase;
 import com.pickeat.ports.in.ChangeOrderStatusUseCase;
 import com.pickeat.ports.in.CreateOrderUseCase;
@@ -39,6 +41,7 @@ import java.util.UUID;
  */
 @RestController
 @RequestMapping("/ordenes")
+@Tag(name = "Ordenes", description = "Operaciones de ordenes")
 public class OrdersController {
     private final CreateOrderUseCase createOrderUseCase;
     private final UpdateOrderUseCase updateOrderUseCase;
@@ -169,6 +172,7 @@ public class OrdersController {
      */
     @PostMapping("/{id}/status")
     @PreAuthorize("hasAnyRole('SUPERADMINISTRADOR','ADMINISTRADOR')")
+    @Operation(summary = "Cambia el estado de una orden")
     public ResponseEntity<OrderResponse> changeStatus(@PathVariable("id") UUID id,
                                                       @Valid @RequestBody OrderStatusRequest request) {
         OrderStatus status;

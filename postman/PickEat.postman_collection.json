@@ -31,6 +31,10 @@
     {
       "key": "orderId",
       "value": ""
+    },
+    {
+      "key": "orderChannelId",
+      "value": ""
     }
   ],
   "auth": {
@@ -173,9 +177,19 @@
           }
         },
         {
-          "name": "POST /ordenes",
+          "name": "POST /ordenes/configuracion",
           "request": {
             "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/ordenes/configuracion",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "ordenes",
+                "configuracion"
+              ]
+            },
             "header": [
               {
                 "key": "Content-Type",
@@ -184,8 +198,14 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\"mesaId\":\"{{mesaId}}\",\"items\":[{\"menuItemId\":\"{{menuItemId}}\",\"quantity\":2}]}"
-            },
+              "raw": "{\"taxRate\":12.0,\"tipValue\":10.0}"
+            }
+          }
+        },
+        {
+          "name": "GET /ordenes",
+          "request": {
+            "method": "GET",
             "url": {
               "raw": "{{baseUrl}}/ordenes",
               "host": [
@@ -194,6 +214,57 @@
               "path": [
                 "ordenes"
               ]
+            }
+          }
+        },
+        {
+          "name": "POST /ordenes",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/ordenes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "ordenes"
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"mesaId\":\"{{mesaId}}\",\"channelId\":\"{{orderChannelId}}\",\"items\":[{\"menuItemId\":\"{{menuItemId}}\",\"quantity\":2}],\"tipType\":\"PERCENTAGE\",\"tipValue\":10,\"tipEnabled\":true}"
+            }
+          }
+        },
+        {
+          "name": "PUT /ordenes/{id}",
+          "request": {
+            "method": "PUT",
+            "url": {
+              "raw": "{{baseUrl}}/ordenes/{{orderId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "ordenes",
+                "{{orderId}}"
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"mesaId\":\"{{mesaId}}\",\"channelId\":\"{{orderChannelId}}\",\"items\":[{\"menuItemId\":\"{{menuItemId}}\",\"quantity\":2}],\"tipType\":\"PERCENTAGE\",\"tipValue\":10,\"tipEnabled\":true}"
             }
           }
         },
@@ -212,6 +283,209 @@
               ]
             }
           }
+        },
+        {
+          "name": "DELETE /ordenes/{id}",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/ordenes/{{orderId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "ordenes",
+                "{{orderId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST /ordenes/{id}/restore",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/ordenes/{{orderId}}/restore",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "ordenes",
+                "{{orderId}}",
+                "restore"
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST /ordenes/{id}/active",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/ordenes/{{orderId}}/active",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "ordenes",
+                "{{orderId}}",
+                "active"
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"activo\":true}"
+            }
+          }
+        },
+        {
+          "name": "POST /ordenes/{id}/status",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/ordenes/{{orderId}}/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "ordenes",
+                "{{orderId}}",
+                "status"
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"status\":\"PREPARANDOSE\"}"
+            }
+          }
+        },
+        {
+          "name": "Canales",
+          "item": [
+            {
+              "name": "GET /ordenes/canales",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{baseUrl}}/ordenes/canales",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "ordenes",
+                    "canales"
+                  ],
+                  "query": [
+                    {
+                      "key": "includeDeleted",
+                      "value": "",
+                      "description": "Optional include deleted"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "POST /ordenes/canales",
+              "request": {
+                "method": "POST",
+                "url": {
+                  "raw": "{{baseUrl}}/ordenes/canales",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "ordenes",
+                    "canales"
+                  ]
+                },
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"name\":\"LOCAL\"}"
+                }
+              }
+            },
+            {
+              "name": "PUT /ordenes/canales/{id}",
+              "request": {
+                "method": "PUT",
+                "url": {
+                  "raw": "{{baseUrl}}/ordenes/canales/{{orderChannelId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "ordenes",
+                    "canales",
+                    "{{orderChannelId}}"
+                  ]
+                },
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"name\":\"WEB\"}"
+                }
+              }
+            },
+            {
+              "name": "DELETE /ordenes/canales/{id}",
+              "request": {
+                "method": "DELETE",
+                "url": {
+                  "raw": "{{baseUrl}}/ordenes/canales/{{orderChannelId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "ordenes",
+                    "canales",
+                    "{{orderChannelId}}"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "POST /ordenes/canales/{id}/restore",
+              "request": {
+                "method": "POST",
+                "url": {
+                  "raw": "{{baseUrl}}/ordenes/canales/{{orderChannelId}}/restore",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "ordenes",
+                    "canales",
+                    "{{orderChannelId}}",
+                    "restore"
+                  ]
+                }
+              }
+            }
+          ]
         }
       ]
     },
@@ -497,7 +771,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\"description\":\"Mesa 1\",\"seats\":4,\"activo\":true}"
+              "raw": "{\"description\":\"Mesa 1\",\"seats\":4,\"activo\":true,\"ocupada\":false}"
             },
             "url": {
               "raw": "{{baseUrl}}/mesas",
@@ -560,7 +834,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\"description\":\"Mesa 1\",\"seats\":4,\"activo\":true}"
+              "raw": "{\"description\":\"Mesa 1\",\"seats\":4,\"activo\":true,\"ocupada\":false}"
             },
             "url": {
               "raw": "{{baseUrl}}/mesas/{{mesaId}}",
@@ -619,7 +893,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\"activo\":true}"
+              "raw": "{\"description\":\"Mesa 1\",\"seats\":4,\"activo\":true,\"ocupada\":false}"
             },
             "url": {
               "raw": "{{baseUrl}}/mesas/{{mesaId}}/active",
@@ -651,7 +925,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\"longDescription\":\"Pizza familiar\",\"shortDescription\":\"Pizza\",\"nickname\":\"PIZZA\",\"dishType\":\"PLATO_FUERTE\",\"activo\":true,\"price\":12.5}"
+              "raw": "{\"longDescription\":\"Pizza familiar\",\"shortDescription\":\"Pizza\",\"nickname\":\"PIZZA\",\"dishType\":\"PLATO_FUERTE\",\"activo\":true,\"aplicaImpuesto\":true,\"price\":12.5}"
             },
             "url": {
               "raw": "{{baseUrl}}/menu-items",
@@ -725,7 +999,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\"longDescription\":\"Pizza familiar\",\"shortDescription\":\"Pizza\",\"nickname\":\"PIZZA\",\"dishType\":\"PLATO_FUERTE\",\"activo\":true,\"price\":12.5}"
+              "raw": "{\"longDescription\":\"Pizza familiar\",\"shortDescription\":\"Pizza\",\"nickname\":\"PIZZA\",\"dishType\":\"PLATO_FUERTE\",\"activo\":true,\"aplicaImpuesto\":true,\"price\":12.5}"
             },
             "url": {
               "raw": "{{baseUrl}}/menu-items/{{menuItemId}}",
@@ -751,7 +1025,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\"activo\":true}"
+              "raw": "{\"longDescription\":\"Pizza familiar\",\"shortDescription\":\"Pizza\",\"nickname\":\"PIZZA\",\"dishType\":\"PLATO_FUERTE\",\"activo\":true,\"aplicaImpuesto\":true,\"price\":12.5}"
             },
             "url": {
               "raw": "{{baseUrl}}/menu-items/{{menuItemId}}/active",
@@ -811,7 +1085,8 @@
                   "type": "file",
                   "src": ""
                 }
-              ]
+              ],
+              "raw": "{\"longDescription\":\"Pizza familiar\",\"shortDescription\":\"Pizza\",\"nickname\":\"PIZZA\",\"dishType\":\"PLATO_FUERTE\",\"activo\":true,\"aplicaImpuesto\":true,\"price\":12.5}"
             },
             "url": {
               "raw": "{{baseUrl}}/menu-items/{{menuItemId}}/image",

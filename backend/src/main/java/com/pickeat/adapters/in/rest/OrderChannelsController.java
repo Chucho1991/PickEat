@@ -10,6 +10,8 @@ import com.pickeat.ports.in.DeleteOrderChannelUseCase;
 import com.pickeat.ports.in.ListOrderChannelsUseCase;
 import com.pickeat.ports.in.RestoreOrderChannelUseCase;
 import com.pickeat.ports.in.UpdateOrderChannelUseCase;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -31,6 +33,7 @@ import java.util.UUID;
  */
 @RestController
 @RequestMapping("/ordenes/canales")
+@Tag(name = "Ordenes - Canales", description = "Administracion de canales de pedido")
 public class OrderChannelsController {
     private final ListOrderChannelsUseCase listOrderChannelsUseCase;
     private final CreateOrderChannelUseCase createOrderChannelUseCase;
@@ -52,6 +55,7 @@ public class OrderChannelsController {
     }
 
     @GetMapping
+    @Operation(summary = "Lista los canales de pedido")
     public ResponseEntity<List<OrderChannelResponse>> list(@RequestParam(value = "includeDeleted", required = false) Boolean includeDeleted) {
         List<OrderChannelResponse> channels = listOrderChannelsUseCase.list(Boolean.TRUE.equals(includeDeleted))
                 .stream()
@@ -62,6 +66,7 @@ public class OrderChannelsController {
 
     @PostMapping
     @PreAuthorize("hasRole('SUPERADMINISTRADOR')")
+    @Operation(summary = "Crea un canal de pedido")
     public ResponseEntity<OrderChannelResponse> create(@Valid @RequestBody OrderChannelRequest request) {
         OrderChannel channel = createOrderChannelUseCase.create(mapper.toDomain(request));
         return ResponseEntity.ok(mapper.toResponse(channel));
@@ -69,6 +74,7 @@ public class OrderChannelsController {
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('SUPERADMINISTRADOR')")
+    @Operation(summary = "Actualiza un canal de pedido")
     public ResponseEntity<OrderChannelResponse> update(@PathVariable("id") UUID id,
                                                        @Valid @RequestBody OrderChannelRequest request) {
         OrderChannel channel = updateOrderChannelUseCase.update(new OrderChannelId(id), mapper.toDomain(request));
@@ -77,6 +83,7 @@ public class OrderChannelsController {
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('SUPERADMINISTRADOR')")
+    @Operation(summary = "Elimina un canal de pedido de forma logica")
     public ResponseEntity<Void> delete(@PathVariable("id") UUID id) {
         deleteOrderChannelUseCase.delete(new OrderChannelId(id));
         return ResponseEntity.noContent().build();
@@ -84,6 +91,7 @@ public class OrderChannelsController {
 
     @PostMapping("/{id}/restore")
     @PreAuthorize("hasRole('SUPERADMINISTRADOR')")
+    @Operation(summary = "Restaura un canal de pedido eliminado")
     public ResponseEntity<OrderChannelResponse> restore(@PathVariable("id") UUID id) {
         return ResponseEntity.ok(mapper.toResponse(restoreOrderChannelUseCase.restore(new OrderChannelId(id))));
     }

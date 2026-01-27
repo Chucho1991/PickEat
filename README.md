@@ -26,8 +26,9 @@ docker compose up --build
 
 ## Modulos
 - **Usuarios**: completo (auth, CRUD, perfil, soft delete, restore, delete fisico con rol SUPERADMINISTRADOR).
-- **Mesas/Menu**: CRUD base con activacion y eliminacion logica.
-- **Ordenes**: creacion con calculo de totales en vivo y configuracion por parametros.
+- **Mesas**: CRUD con activacion, eliminacion logica y estado de ocupacion (libre/ocupada).
+- **Menu**: CRUD con activacion/eliminacion logica e indicador de aplica impuesto por producto.
+- **Ordenes**: creacion/edicion con calculo de totales, propina opcional (porcentaje o fija), canales de pedido, estados de orden y configuracion por parametros.
 - **Despachador**: rutas placeholder con "Coming soon".
 
 ## Gestion de usuarios
@@ -47,6 +48,34 @@ docker compose up --build
 - `GET /users/me`
 - `PUT /users/me`
 - `GET /dashboard` (solo ADMIN/SUPERADMIN)
+
+## Endpoints principales (Ordenes)
+- `GET /ordenes`
+- `POST /ordenes` (incluye `channelId`, `tipType`, `tipValue`, `tipEnabled`)
+- `PUT /ordenes/{id}`
+- `GET /ordenes/{id}`
+- `DELETE /ordenes/{id}` (eliminacion logica)
+- `POST /ordenes/{id}/restore`
+- `POST /ordenes/{id}/active` (solo SUPERADMINISTRADOR)
+- `POST /ordenes/{id}/status` (solo ADMIN/SUPERADMIN)
+- `GET /ordenes/configuracion`
+- `POST /ordenes/configuracion` (solo SUPERADMINISTRADOR)
+
+## Endpoints principales (Canales de orden)
+- `GET /ordenes/canales`
+- `POST /ordenes/canales` (solo SUPERADMINISTRADOR)
+- `PUT /ordenes/canales/{id}` (solo SUPERADMINISTRADOR)
+- `DELETE /ordenes/canales/{id}` (solo SUPERADMINISTRADOR, eliminacion logica)
+- `POST /ordenes/canales/{id}/restore` (solo SUPERADMINISTRADOR)
+
+## Endpoints principales (Mesas)
+- `GET /mesas`
+- `POST /mesas`
+- `PUT /mesas/{id}`
+- `GET /mesas/{id}`
+- `DELETE /mesas/{id}` (eliminacion logica)
+- `POST /mesas/{id}/restore`
+- `POST /mesas/{id}/active` (solo SUPERADMINISTRADOR)
 
 ## Soft delete
 - Por defecto, los usuarios se eliminan de forma logica.

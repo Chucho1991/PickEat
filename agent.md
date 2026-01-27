@@ -5,6 +5,8 @@
 - Validar entrada con `jakarta.validation`.
 - Control de estados en los regitros que se guardan por formulario (en BDD booleano activo, en front Activo/Inactivo)
 - Control de eliminación en los regitros que se guardan por formulario (en BDD booleano deleted, en front botón de elimando con confirmación vía popup)
+- En Ordenes, mantener sincronía entre estado de orden y ocupación de mesa (mesas ocupadas no se pueden reasignar).
+- En Ordenes, registrar estado (`CREADA`, `PREPARANDOSE`, `DESPACHADA`, `PAGADA`, `INACTIVA`, `ELIMINADA`) y canal por defecto.
 - Documentar cada método con Javadoc en Java y con Compodoc en Angular.
 - En el frontend usar utilidades de Tailwind para estilos nuevos y centralizar overrides globales en `frontend/src/styles.css`.
 - El paquete de íconos los debe tomar de tailadmin adjunto en la carpeta /libs

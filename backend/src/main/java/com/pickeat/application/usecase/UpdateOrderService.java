@@ -9,10 +9,13 @@ import com.pickeat.domain.OrderChannelId;
 import com.pickeat.domain.OrderConfig;
 import com.pickeat.domain.OrderDraft;
 import com.pickeat.domain.OrderId;
+import com.pickeat.domain.OrderDiscountDraft;
+import com.pickeat.domain.OrderDiscountItem;
 import com.pickeat.domain.OrderItem;
 import com.pickeat.domain.OrderItemDraft;
 import com.pickeat.domain.TipType;
 import com.pickeat.ports.in.UpdateOrderUseCase;
+import com.pickeat.ports.out.DiscountItemRepositoryPort;
 import com.pickeat.ports.out.MenuItemRepositoryPort;
 import com.pickeat.ports.out.MesaRepositoryPort;
 import com.pickeat.ports.out.OrderChannelRepositoryPort;
@@ -37,17 +40,20 @@ public class UpdateOrderService implements UpdateOrderUseCase {
     private final OrderRepositoryPort orderRepository;
     private final MesaRepositoryPort mesaRepository;
     private final MenuItemRepositoryPort menuItemRepository;
+    private final DiscountItemRepositoryPort discountItemRepository;
     private final ParameterRepositoryPort parameterRepository;
     private final OrderChannelRepositoryPort orderChannelRepository;
 
     public UpdateOrderService(OrderRepositoryPort orderRepository,
                               MesaRepositoryPort mesaRepository,
                               MenuItemRepositoryPort menuItemRepository,
+                              DiscountItemRepositoryPort discountItemRepository,
                               ParameterRepositoryPort parameterRepository,
                               OrderChannelRepositoryPort orderChannelRepository) {
         this.orderRepository = orderRepository;
         this.mesaRepository = mesaRepository;
         this.menuItemRepository = menuItemRepository;
+        this.discountItemRepository = discountItemRepository;
         this.parameterRepository = parameterRepository;
         this.orderChannelRepository = orderChannelRepository;
     }
@@ -136,8 +142,16 @@ public class UpdateOrderService implements UpdateOrderUseCase {
         }
         tipAmount = tipAmount.setScale(2, RoundingMode.HALF_UP);
 
-        BigDecimal discountAmount = BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP);
-        BigDecimal totalAmount = subtotal.add(taxAmount).add(tipAmount).subtract(discountAmount);
+        List<OrderDiscountItem> discountItems = resolveDiscountItems(draft.getDiscountItems(), subtotal, taxAmount, tipAmount);
+        BigDecimal baseTotal = subtotal.add(taxAmount).add(tipAmount);
+        BigDecimal discountAmount = discountItems.stream()
+                .map(OrderDiscountItem::getTotalValue)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        if (discountAmount.compareTo(baseTotal) > 0) {
+            discountAmount = baseTotal;
+        }
+        discountAmount = discountAmount.setScale(2, RoundingMode.HALF_UP);
+        BigDecimal totalAmount = baseTotal.subtract(discountAmount);
         totalAmount = totalAmount.setScale(2, RoundingMode.HALF_UP);
 
         if (mesaChanged) {
@@ -153,6 +167,7 @@ public class UpdateOrderService implements UpdateOrderUseCase {
         existing.setMesaId(mesa.getId());
         existing.setChannelId(channel.getId());
         existing.setItems(items);
+        existing.setDiscountItems(discountItems);
         existing.setSubtotal(subtotal);
         existing.setTaxAmount(taxAmount);
         existing.setTipAmount(tipAmount);
@@ -172,6 +187,52 @@ public class UpdateOrderService implements UpdateOrderUseCase {
             }
             int quantity = draftItem.getQuantity();
             merged.put(draftItem.getMenuItemId(), merged.getOrDefault(draftItem.getMenuItemId(), 0) + quantity);
+        }
+        return merged;
+    }
+
+    private List<OrderDiscountItem> resolveDiscountItems(List<OrderDiscountDraft> drafts,
+                                                         BigDecimal subtotal,
+                                                         BigDecimal taxAmount,
+                                                         BigDecimal tipAmount) {
+        if (drafts == null || drafts.isEmpty()) {
+            return List.of();
+        }
+        Map<com.pickeat.domain.DiscountItemId, Integer> quantities = mergeDiscountQuantities(drafts);
+        BigDecimal baseTotal = subtotal.add(taxAmount).add(tipAmount);
+        List<OrderDiscountItem> result = new ArrayList<>();
+        for (Map.Entry<com.pickeat.domain.DiscountItemId, Integer> entry : quantities.entrySet()) {
+            int quantity = entry.getValue();
+            if (quantity <= 0) {
+                throw new IllegalArgumentException("La cantidad de descuento debe ser mayor a cero.");
+            }
+            com.pickeat.domain.DiscountItem discountItem = discountItemRepository.findById(entry.getKey())
+                    .orElseThrow(() -> new IllegalArgumentException("Descuento no encontrado."));
+            if (!discountItem.isActive() || discountItem.isDeleted()) {
+                throw new IllegalArgumentException("El descuento no esta disponible.");
+            }
+            BigDecimal unitValue = discountItem.getValue();
+            BigDecimal lineTotal;
+            if (discountItem.getDiscountType() == com.pickeat.domain.DiscountType.PERCENTAGE) {
+                lineTotal = baseTotal.multiply(unitValue.divide(ONE_HUNDRED, 4, RoundingMode.HALF_UP))
+                        .multiply(BigDecimal.valueOf(quantity));
+            } else {
+                lineTotal = unitValue.multiply(BigDecimal.valueOf(quantity));
+            }
+            lineTotal = lineTotal.setScale(2, RoundingMode.HALF_UP);
+            result.add(new OrderDiscountItem(discountItem.getId(), quantity, discountItem.getDiscountType(), unitValue, lineTotal));
+        }
+        return result;
+    }
+
+    private Map<com.pickeat.domain.DiscountItemId, Integer> mergeDiscountQuantities(List<OrderDiscountDraft> items) {
+        Map<com.pickeat.domain.DiscountItemId, Integer> merged = new HashMap<>();
+        for (OrderDiscountDraft draftItem : items) {
+            if (draftItem == null || draftItem.getDiscountItemId() == null) {
+                continue;
+            }
+            int quantity = draftItem.getQuantity();
+            merged.put(draftItem.getDiscountItemId(), merged.getOrDefault(draftItem.getDiscountItemId(), 0) + quantity);
         }
         return merged;
     }

@@ -13,6 +13,8 @@ import { MesasListPageComponent } from './mesas/pages/mesas-list-page.component'
 import { MesasFormPageComponent } from './mesas/pages/mesas-form-page.component';
 import { MenuListPageComponent } from './menu/pages/menu-list-page.component';
 import { MenuFormPageComponent } from './menu/pages/menu-form-page.component';
+import { DiscountsListPageComponent } from './discounts/pages/discounts-list-page.component';
+import { DiscountsFormPageComponent } from './discounts/pages/discounts-form-page.component';
 import { OrdersPageComponent } from './orders/pages/orders-page.component';
 import { OrdersListPageComponent } from './orders/pages/orders-list-page.component';
 import { OrdersShellPageComponent } from './orders/pages/orders-shell-page.component';
@@ -67,6 +69,16 @@ export const routes: Routes = [
       { path: '', component: MenuListPageComponent },
       { path: 'new', component: MenuFormPageComponent },
       { path: ':id/edit', component: MenuFormPageComponent }
+    ]
+  },
+  {
+    path: 'descuentos',
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['SUPERADMINISTRADOR', 'ADMINISTRADOR'] },
+    children: [
+      { path: '', component: DiscountsListPageComponent },
+      { path: 'new', component: DiscountsFormPageComponent },
+      { path: ':id/edit', component: DiscountsFormPageComponent }
     ]
   },
   {

@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MenuApiService, MenuItemDto } from '../../core/services/menu-api.service';
+import { DiscountsApiService, DiscountItemDto } from '../../core/services/discounts-api.service';
 import { MesasApiService, MesaDto } from '../../core/services/mesas-api.service';
 import { OrderChannelDto, OrderConfigDto, OrderResponse, OrdersApiService, OrderStatus } from '../../core/services/orders-api.service';
 import { environment } from '../../../environments/environment';
@@ -13,6 +14,13 @@ interface OrderLine {
   menuItem: MenuItemDto;
   quantity: number;
   unitPrice: number;
+  total: number;
+}
+
+interface DiscountLine {
+  discountItem: DiscountItemDto;
+  quantity: number;
+  unitValue: number;
   total: number;
 }
 
@@ -122,12 +130,37 @@ interface OrderLine {
             <div class="menu-price">{{ formatMoney(item.price) }}</div>
           </button>
         </div>
+
+        <div class="order-menu-header">
+          <div>
+            <h3 class="section-title">Descuentos disponibles</h3>
+            <p class="section-subtitle">Selecciona descuentos para aplicar al total.</p>
+          </div>
+          <label class="field inline-field">
+            <span>Buscar</span>
+            <input type="search" placeholder="Buscar descuento" [(ngModel)]="discountSearchTerm" (input)="applyDiscountFilters()" />
+          </label>
+        </div>
+
+        <div class="menu-grid">
+          <button class="menu-card" type="button" *ngFor="let item of filteredDiscountItems" (click)="addDiscount(item)">
+            <div class="menu-thumb" [class.menu-thumb-empty]="!item.imagePath">
+              <img *ngIf="item.imagePath" [src]="imageUrl(item.imagePath)" [alt]="item.nickname" />
+              <span *ngIf="!item.imagePath">Sin imagen</span>
+            </div>
+            <div class="menu-info">
+              <p class="menu-title">{{ item.nickname }}</p>
+              <p class="menu-subtitle">{{ item.shortDescription }}</p>
+            </div>
+            <div class="menu-price">{{ formatDiscountValue(item) }}</div>
+          </button>
+        </div>
       </section>
 
       <aside class="card order-summary">
         <div class="order-summary-header">
           <h3 class="section-title">Detalle de orden</h3>
-          <p class="section-subtitle">{{ orderItems.length }} items agregados</p>
+          <p class="section-subtitle">{{ orderItems.length + orderDiscountItems.length }} items agregados</p>
         </div>
 
         <div class="order-status" *ngIf="loadedOrder">
@@ -230,6 +263,42 @@ interface OrderLine {
               </svg>
             </button>
           </div>
+          <div class="order-item-divider" *ngIf="orderDiscountItems.length > 0">Descuentos</div>
+          <div class="order-item-row" *ngFor="let line of orderDiscountItems">
+            <div class="order-item-main">
+              <div class="order-item-title">
+                <p class="order-item-name">{{ line.discountItem.nickname }}</p>
+              </div>
+              <p class="order-item-meta">{{ discountLabel(line.discountItem) }}</p>
+            </div>
+            <div class="order-item-qty">
+              <button class="btn btn-ghost btn-sm icon-btn" type="button" (click)="decreaseDiscount(line.discountItem)" title="Restar" aria-label="Restar">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M6 12H18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path>
+                </svg>
+              </button>
+              <span class="order-item-count">{{ line.quantity }}</span>
+              <button class="btn btn-ghost btn-sm icon-btn" type="button" (click)="addDiscount(line.discountItem)" title="Sumar" aria-label="Sumar">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M12 6V18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path>
+                  <path d="M6 12H18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path>
+                </svg>
+              </button>
+            </div>
+            <div class="order-item-prices">
+              <span class="order-item-unit">{{ formatDiscountLineUnit(line) }}</span>
+              <span class="order-item-total">-{{ formatMoney(line.total) }}</span>
+            </div>
+            <button class="btn btn-ghost btn-sm icon-btn" type="button" (click)="removeDiscount(line.discountItem)" title="Eliminar" aria-label="Eliminar">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M4 7H20" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path>
+                <path d="M10 11V17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path>
+                <path d="M14 11V17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path>
+                <path d="M6 7L7 19H17L18 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                <path d="M9 7V5H15V7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+              </svg>
+            </button>
+          </div>
           <div class="empty-state" *ngIf="orderItems.length === 0">
             <p>Agrega platos desde el menu.</p>
           </div>
@@ -263,6 +332,7 @@ interface OrderLine {
 })
 export class OrdersPageComponent implements OnInit {
   private menuApi = inject(MenuApiService);
+  private discountsApi = inject(DiscountsApiService);
   private mesasApi = inject(MesasApiService);
   private ordersApi = inject(OrdersApiService);
   private snackBar = inject(MatSnackBar);
@@ -272,13 +342,17 @@ export class OrdersPageComponent implements OnInit {
 
   menuItems: MenuItemDto[] = [];
   filteredMenuItems: MenuItemDto[] = [];
+  discountItems: DiscountItemDto[] = [];
+  filteredDiscountItems: DiscountItemDto[] = [];
   mesas: MesaDto[] = [];
   orderItems: OrderLine[] = [];
+  orderDiscountItems: DiscountLine[] = [];
   selectedMesaId = '';
   selectedChannelId = '';
   channels: OrderChannelDto[] = [];
   selectedDishType = '';
   searchTerm = '';
+  discountSearchTerm = '';
   orderNumber?: number;
   tipType: 'PERCENTAGE' | 'FIXED' | 'NONE' = 'NONE';
   fixedTipAmount = 0;
@@ -286,6 +360,7 @@ export class OrdersPageComponent implements OnInit {
   editingOrderId: string | null = null;
   loadedOrder: OrderResponse | null = null;
   private hasSyncedOrderItems = false;
+  private hasSyncedDiscountItems = false;
   orderStatus: OrderStatus = 'CREADA';
   canManageStatus = this.authService.hasRole(['SUPERADMINISTRADOR', 'ADMINISTRADOR']);
   private mesaPalette = ['#fde68a', '#bfdbfe', '#bbf7d0', '#fecaca', '#fbcfe8', '#ddd6fe', '#fee2e2', '#cffafe'];
@@ -306,6 +381,7 @@ export class OrdersPageComponent implements OnInit {
     this.loadMesas();
     this.loadChannels();
     this.loadMenuItems();
+    this.loadDiscountItems();
     this.route.paramMap.subscribe((params) => {
       const orderId = params.get('id');
       this.isEditMode = Boolean(orderId);
@@ -360,6 +436,47 @@ export class OrdersPageComponent implements OnInit {
   }
 
   /**
+   * Agrega un descuento al detalle de la orden.
+   */
+  addDiscount(item: DiscountItemDto) {
+    const existing = this.orderDiscountItems.find((line) => line.discountItem.id === item.id);
+    if (existing) {
+      existing.quantity += 1;
+      existing.total = this.calculateDiscountLineTotal(item, existing.quantity);
+      return;
+    }
+    this.orderDiscountItems.push({
+      discountItem: item,
+      quantity: 1,
+      unitValue: Number(item.value),
+      total: this.calculateDiscountLineTotal(item, 1)
+    });
+  }
+
+  /**
+   * Reduce la cantidad de un descuento.
+   */
+  decreaseDiscount(item: DiscountItemDto) {
+    const existing = this.orderDiscountItems.find((line) => line.discountItem.id === item.id);
+    if (!existing) {
+      return;
+    }
+    existing.quantity -= 1;
+    if (existing.quantity <= 0) {
+      this.removeDiscount(item);
+      return;
+    }
+    existing.total = this.calculateDiscountLineTotal(item, existing.quantity);
+  }
+
+  /**
+   * Elimina un descuento del detalle.
+   */
+  removeDiscount(item: DiscountItemDto) {
+    this.orderDiscountItems = this.orderDiscountItems.filter((line) => line.discountItem.id !== item.id);
+  }
+
+  /**
    * Cambia el filtro por tipo de plato.
    */
   setDishType(type: string) {
@@ -372,6 +489,13 @@ export class OrdersPageComponent implements OnInit {
    */
   applyFilters() {
     this.loadMenuItems();
+  }
+
+  /**
+   * Aplica filtros de busqueda para descuentos.
+   */
+  applyDiscountFilters() {
+    this.loadDiscountItems();
   }
 
   /**
@@ -397,6 +521,12 @@ export class OrdersPageComponent implements OnInit {
         menuItemId: line.menuItem.id,
         quantity: line.quantity
       })),
+      discountItems: this.orderDiscountItems.length
+        ? this.orderDiscountItems.map((line) => ({
+            discountItemId: line.discountItem.id,
+            quantity: line.quantity
+          }))
+        : undefined,
       tipType: this.tipType === 'NONE' ? undefined : this.tipType,
       tipValue: this.tipType === 'FIXED' ? Number(this.fixedTipAmount || 0) : undefined,
       tipEnabled: this.tipType !== 'NONE'
@@ -498,7 +628,13 @@ export class OrdersPageComponent implements OnInit {
    * Descuento aplicado (por ahora fijo en cero).
    */
   get discountAmount() {
-    return 0;
+    const baseTotal = this.subtotal + this.taxAmount + this.tipAmount;
+    const discountTotal = this.orderDiscountItems.reduce((sum, line) => {
+      const lineTotal = this.calculateDiscountLineTotal(line.discountItem, line.quantity);
+      line.total = lineTotal;
+      return sum + lineTotal;
+    }, 0);
+    return this.round(Math.min(baseTotal, discountTotal));
   }
 
   /**
@@ -523,6 +659,27 @@ export class OrdersPageComponent implements OnInit {
   formatMoney(value: number) {
     const formatted = new Intl.NumberFormat('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value);
     return `${this.config.currencySymbol}${formatted}`;
+  }
+
+  formatDiscountValue(item: DiscountItemDto) {
+    if (item.discountType === 'PERCENTAGE') {
+      return `${item.value}%`;
+    }
+    return this.formatMoney(item.value);
+  }
+
+  discountLabel(item: DiscountItemDto) {
+    if (item.discountType === 'PERCENTAGE') {
+      return `Descuento ${item.value}% sobre el total`;
+    }
+    return `Descuento fijo ${this.formatMoney(item.value)}`;
+  }
+
+  formatDiscountLineUnit(line: DiscountLine) {
+    if (line.discountItem.discountType === 'PERCENTAGE') {
+      return `${line.discountItem.value}%`;
+    }
+    return this.formatMoney(line.unitValue);
   }
 
   /**
@@ -585,6 +742,17 @@ export class OrdersPageComponent implements OnInit {
       });
   }
 
+  private loadDiscountItems() {
+    this.discountsApi.list({ activo: true, search: this.discountSearchTerm || undefined }).subscribe({
+      next: (items) => {
+        this.discountItems = items.filter((item) => item.activo && !item.deleted);
+        this.filteredDiscountItems = [...this.discountItems];
+        this.syncDiscountItems();
+      },
+      error: () => this.snackBar.open('No se pudo cargar descuentos', 'Cerrar', { duration: 3000 })
+    });
+  }
+
   /**
    * Carga la orden en modo edicion.
    *
@@ -600,12 +768,14 @@ export class OrdersPageComponent implements OnInit {
         }
         this.loadedOrder = order;
         this.hasSyncedOrderItems = false;
+        this.hasSyncedDiscountItems = false;
         this.orderNumber = order.orderNumber;
         this.selectedMesaId = order.mesaId;
         this.selectedChannelId = order.channelId;
         this.orderStatus = order.status;
         this.updateTipSelectionFromOrder();
         this.syncOrderItems();
+        this.syncDiscountItems();
       },
       error: () => {
         this.snackBar.open('No se pudo cargar la orden', 'Cerrar', { duration: 3000 });
@@ -653,6 +823,23 @@ export class OrdersPageComponent implements OnInit {
     this.hasSyncedOrderItems = true;
   }
 
+  private syncDiscountItems() {
+    if (!this.loadedOrder || this.discountItems.length === 0 || this.hasSyncedDiscountItems) {
+      return;
+    }
+    this.orderDiscountItems = this.loadedOrder.discountItems.map((item) => {
+      const discountItem =
+        this.discountItems.find((discount) => discount.id === item.discountItemId) ?? this.buildPlaceholderDiscount(item);
+      return {
+        discountItem,
+        quantity: item.quantity,
+        unitValue: Number(item.unitValue),
+        total: Number(item.totalValue)
+      };
+    });
+    this.hasSyncedDiscountItems = true;
+  }
+
   /**
    * Construye un placeholder para items no disponibles.
    *
@@ -675,11 +862,28 @@ export class OrdersPageComponent implements OnInit {
     } as MenuItemDto;
   }
 
+  private buildPlaceholderDiscount(item: { discountItemId: string; unitValue: number; discountType: string }) {
+    return {
+      id: item.discountItemId,
+      longDescription: 'No disponible',
+      shortDescription: 'No disponible',
+      nickname: 'Descuento eliminado',
+      discountType: item.discountType as 'FIXED' | 'PERCENTAGE',
+      value: item.unitValue,
+      activo: false,
+      deleted: true,
+      imagePath: null,
+      createdAt: '',
+      updatedAt: ''
+    } as DiscountItemDto;
+  }
+
   private resetOrder() {
     this.selectedMesaId = '';
     const defaultChannel = this.channels.find((channel) => channel.isDefault) ?? this.channels.find((channel) => channel.name === 'LOCAL');
     this.selectedChannelId = defaultChannel ? defaultChannel.id : '';
     this.orderItems = [];
+    this.orderDiscountItems = [];
     this.orderNumber = undefined;
     this.loadedOrder = null;
     this.isEditMode = false;
@@ -688,6 +892,15 @@ export class OrdersPageComponent implements OnInit {
     this.tipType = 'NONE';
     this.fixedTipAmount = 0;
     this.hasSyncedOrderItems = false;
+    this.hasSyncedDiscountItems = false;
+  }
+
+  private calculateDiscountLineTotal(item: DiscountItemDto, quantity: number) {
+    const baseTotal = this.subtotal + this.taxAmount + this.tipAmount;
+    if (item.discountType === 'PERCENTAGE') {
+      return this.round(((baseTotal * item.value) / 100) * quantity);
+    }
+    return this.round(item.value * quantity);
   }
 
   selectMesa(mesa: MesaDto) {

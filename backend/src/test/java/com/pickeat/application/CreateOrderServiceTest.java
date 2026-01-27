@@ -11,6 +11,7 @@ import com.pickeat.domain.OrderDraft;
 import com.pickeat.domain.OrderItemDraft;
 import com.pickeat.domain.OrderChannel;
 import com.pickeat.domain.OrderChannelId;
+import com.pickeat.ports.out.DiscountItemRepositoryPort;
 import com.pickeat.ports.out.MenuItemRepositoryPort;
 import com.pickeat.ports.out.MesaRepositoryPort;
 import com.pickeat.ports.out.OrderChannelRepositoryPort;
@@ -34,9 +35,17 @@ class CreateOrderServiceTest {
         OrderRepositoryPort orderRepository = Mockito.mock(OrderRepositoryPort.class);
         MesaRepositoryPort mesaRepository = Mockito.mock(MesaRepositoryPort.class);
         MenuItemRepositoryPort menuItemRepository = Mockito.mock(MenuItemRepositoryPort.class);
+        DiscountItemRepositoryPort discountItemRepository = Mockito.mock(DiscountItemRepositoryPort.class);
         ParameterRepositoryPort parameterRepository = Mockito.mock(ParameterRepositoryPort.class);
         OrderChannelRepositoryPort orderChannelRepository = Mockito.mock(OrderChannelRepositoryPort.class);
-        CreateOrderService service = new CreateOrderService(orderRepository, mesaRepository, menuItemRepository, parameterRepository, orderChannelRepository);
+        CreateOrderService service = new CreateOrderService(
+                orderRepository,
+                mesaRepository,
+                menuItemRepository,
+                discountItemRepository,
+                parameterRepository,
+                orderChannelRepository
+        );
 
         Mesa mesa = new Mesa(new MesaId(UUID.randomUUID()), "Mesa 1", 4, true, false, false);
         MenuItem menuItem = MenuItem.createNew(
@@ -51,6 +60,7 @@ class CreateOrderServiceTest {
         OrderDraft draft = new OrderDraft(
                 mesa.getId(),
                 List.of(new OrderItemDraft(menuItem.getId(), 2)),
+                null,
                 null,
                 null,
                 null,

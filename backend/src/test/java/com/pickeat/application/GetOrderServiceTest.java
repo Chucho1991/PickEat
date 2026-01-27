@@ -28,6 +28,7 @@ class GetOrderServiceTest {
                 new com.pickeat.domain.MesaId(UUID.randomUUID()),
                 new com.pickeat.domain.OrderChannelId(UUID.randomUUID()),
                 List.of(),
+                List.of(),
                 BigDecimal.ZERO,
                 BigDecimal.ZERO,
                 BigDecimal.ZERO,

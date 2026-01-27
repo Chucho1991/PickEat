@@ -69,6 +69,17 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
               </span>
               <span class="nav-label">Menu</span>
             </a>
+            <a routerLink="/descuentos" routerLinkActive="active" *ngIf="hasModule('descuentos')">
+              <span class="nav-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M7 3.5C7 2.80964 7.55964 2.25 8.25 2.25H15.75C16.4404 2.25 17 2.80964 17 3.5V7.5C17 8.19036 16.4404 8.75 15.75 8.75H8.25C7.55964 8.75 7 8.19036 7 7.5V3.5Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                  <path d="M5 12.5C5 11.8096 5.55964 11.25 6.25 11.25H17.75C18.4404 11.25 19 11.8096 19 12.5V20.5C19 21.1904 18.4404 21.75 17.75 21.75H6.25C5.55964 21.75 5 21.1904 5 20.5V12.5Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                  <path d="M9 15.5H15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path>
+                  <path d="M12 14V17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path>
+                </svg>
+              </span>
+              <span class="nav-label">Descuentos</span>
+            </a>
             <a routerLink="/ordenes" routerLinkActive="active" *ngIf="hasModule('ordenes')">
               <span class="nav-icon" aria-hidden="true">
                 <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">

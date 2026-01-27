@@ -14,6 +14,9 @@ import { MesasFormPageComponent } from './mesas/pages/mesas-form-page.component'
 import { MenuListPageComponent } from './menu/pages/menu-list-page.component';
 import { MenuFormPageComponent } from './menu/pages/menu-form-page.component';
 import { OrdersPageComponent } from './orders/pages/orders-page.component';
+import { OrdersListPageComponent } from './orders/pages/orders-list-page.component';
+import { OrdersShellPageComponent } from './orders/pages/orders-shell-page.component';
+import { OrdersConfigPageComponent } from './orders/pages/orders-config-page.component';
 
 /**
  * Definición de rutas principales de la aplicación.
@@ -68,9 +71,16 @@ export const routes: Routes = [
   },
   {
     path: 'ordenes',
-    component: OrdersPageComponent,
     canActivate: [AuthGuard],
-    data: { title: 'Ordenes' }
+    data: { title: 'Ordenes' },
+    children: [
+      { path: '', redirectTo: 'lista', pathMatch: 'full' },
+      { path: 'lista', component: OrdersListPageComponent },
+      { path: 'toma', component: OrdersPageComponent },
+      { path: 'configuracion', component: OrdersConfigPageComponent },
+      { path: ':id/edit', component: OrdersPageComponent }
+    ],
+    component: OrdersShellPageComponent
   },
   {
     path: 'despachador',

@@ -11,6 +11,7 @@ public class Order {
     private OrderId id;
     private Long orderNumber;
     private MesaId mesaId;
+    private OrderChannelId channelId;
     private List<OrderItem> items;
     private BigDecimal subtotal;
     private BigDecimal taxAmount;
@@ -19,12 +20,16 @@ public class Order {
     private BigDecimal totalAmount;
     private String currencyCode;
     private String currencySymbol;
+    private OrderStatus status;
+    private boolean active;
+    private boolean deleted;
     private Instant createdAt;
     private Instant updatedAt;
 
     public Order(OrderId id,
                  Long orderNumber,
                  MesaId mesaId,
+                 OrderChannelId channelId,
                  List<OrderItem> items,
                  BigDecimal subtotal,
                  BigDecimal taxAmount,
@@ -33,11 +38,15 @@ public class Order {
                  BigDecimal totalAmount,
                  String currencyCode,
                  String currencySymbol,
+                 OrderStatus status,
+                 boolean active,
+                 boolean deleted,
                  Instant createdAt,
                  Instant updatedAt) {
         this.id = id;
         this.orderNumber = orderNumber;
         this.mesaId = mesaId;
+        this.channelId = channelId;
         this.items = items;
         this.subtotal = subtotal;
         this.taxAmount = taxAmount;
@@ -46,11 +55,15 @@ public class Order {
         this.totalAmount = totalAmount;
         this.currencyCode = currencyCode;
         this.currencySymbol = currencySymbol;
+        this.status = status;
+        this.active = active;
+        this.deleted = deleted;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
 
     public static Order createNew(MesaId mesaId,
+                                  OrderChannelId channelId,
                                   List<OrderItem> items,
                                   BigDecimal subtotal,
                                   BigDecimal taxAmount,
@@ -64,6 +77,7 @@ public class Order {
                 OrderId.newId(),
                 null,
                 mesaId,
+                channelId,
                 items,
                 subtotal,
                 taxAmount,
@@ -72,6 +86,9 @@ public class Order {
                 totalAmount,
                 currencyCode,
                 currencySymbol,
+                OrderStatus.CREADA,
+                true,
+                false,
                 now,
                 now
         );
@@ -99,6 +116,14 @@ public class Order {
 
     public void setMesaId(MesaId mesaId) {
         this.mesaId = mesaId;
+    }
+
+    public OrderChannelId getChannelId() {
+        return channelId;
+    }
+
+    public void setChannelId(OrderChannelId channelId) {
+        this.channelId = channelId;
     }
 
     public List<OrderItem> getItems() {
@@ -163,6 +188,30 @@ public class Order {
 
     public void setCurrencySymbol(String currencySymbol) {
         this.currencySymbol = currencySymbol;
+    }
+
+    public OrderStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(OrderStatus status) {
+        this.status = status;
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
+    }
+
+    public boolean isDeleted() {
+        return deleted;
+    }
+
+    public void setDeleted(boolean deleted) {
+        this.deleted = deleted;
     }
 
     public Instant getCreatedAt() {

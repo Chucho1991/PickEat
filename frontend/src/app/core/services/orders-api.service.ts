@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
@@ -15,6 +15,37 @@ export interface OrderConfigDto {
 }
 
 /**
+ * Solicitud para actualizar configuracion de ordenes.
+ */
+export interface OrderConfigRequest {
+  taxRate: number;
+  tipValue: number;
+}
+
+export type OrderStatus = 'CREADA' | 'PREPARANDOSE' | 'DESPACHADA' | 'PAGADA' | 'INACTIVA' | 'ELIMINADA';
+
+/**
+ * Canal de pedidos.
+ */
+export interface OrderChannelDto {
+  id: string;
+  name: string;
+  activo: boolean;
+  deleted: boolean;
+  locked: boolean;
+  isDefault: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/**
+ * Solicitud para crear o actualizar canales.
+ */
+export interface OrderChannelRequest {
+  name: string;
+}
+
+/**
  * Item solicitado para una orden.
  */
 export interface OrderItemRequest {
@@ -27,7 +58,11 @@ export interface OrderItemRequest {
  */
 export interface OrderCreateRequest {
   mesaId: string;
+  channelId?: string;
   items: OrderItemRequest[];
+  tipType?: 'PERCENTAGE' | 'FIXED';
+  tipValue?: number;
+  tipEnabled?: boolean;
 }
 
 /**
@@ -37,6 +72,7 @@ export interface OrderResponse {
   id: string;
   orderNumber: number;
   mesaId: string;
+  channelId: string;
   items: Array<{
     menuItemId: string;
     quantity: number;
@@ -50,6 +86,9 @@ export interface OrderResponse {
   totalAmount: number;
   currencyCode: string;
   currencySymbol: string;
+  status: OrderStatus;
+  activo: boolean;
+  deleted: boolean;
   createdAt: string;
 }
 
@@ -70,9 +109,104 @@ export class OrdersApiService {
   }
 
   /**
+   * Actualiza la configuracion de ordenes.
+   */
+  updateConfig(request: OrderConfigRequest): Observable<OrderConfigDto> {
+    return this.http.post<OrderConfigDto>(`${this.baseUrl}/configuracion`, request);
+  }
+
+  /**
    * Crea una orden nueva.
    */
   create(request: OrderCreateRequest): Observable<OrderResponse> {
     return this.http.post<OrderResponse>(this.baseUrl, request);
+  }
+
+  /**
+   * Actualiza una orden existente.
+   */
+  update(id: string, request: OrderCreateRequest): Observable<OrderResponse> {
+    return this.http.put<OrderResponse>(`${this.baseUrl}/${id}`, request);
+  }
+
+  /**
+   * Obtiene el listado de ordenes.
+   */
+  list(): Observable<OrderResponse[]> {
+    return this.http.get<OrderResponse[]>(this.baseUrl);
+  }
+
+  /**
+   * Obtiene una orden por id.
+   */
+  getById(id: string): Observable<OrderResponse> {
+    return this.http.get<OrderResponse>(`${this.baseUrl}/${id}`);
+  }
+
+  /**
+   * Cambia el estado activo de una orden.
+   */
+  changeActive(id: string, activo: boolean): Observable<OrderResponse> {
+    return this.http.post<OrderResponse>(`${this.baseUrl}/${id}/active`, { activo });
+  }
+
+  /**
+   * Cambia el estado de una orden.
+   */
+  changeStatus(id: string, status: OrderStatus): Observable<OrderResponse> {
+    return this.http.post<OrderResponse>(`${this.baseUrl}/${id}/status`, { status });
+  }
+
+  /**
+   * Elimina una orden de forma logica.
+   */
+  delete(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/${id}`);
+  }
+
+  /**
+   * Restaura una orden eliminada lógicamente.
+   */
+  restore(id: string): Observable<OrderResponse> {
+    return this.http.post<OrderResponse>(`${this.baseUrl}/${id}/restore`, {});
+  }
+
+  /**
+   * Lista los canales disponibles.
+   */
+  listChannels(includeDeleted = false): Observable<OrderChannelDto[]> {
+    let params = new HttpParams();
+    if (includeDeleted) {
+      params = params.set('includeDeleted', 'true');
+    }
+    return this.http.get<OrderChannelDto[]>(`${this.baseUrl}/canales`, { params });
+  }
+
+  /**
+   * Crea un canal.
+   */
+  createChannel(request: OrderChannelRequest): Observable<OrderChannelDto> {
+    return this.http.post<OrderChannelDto>(`${this.baseUrl}/canales`, request);
+  }
+
+  /**
+   * Actualiza un canal.
+   */
+  updateChannel(id: string, request: OrderChannelRequest): Observable<OrderChannelDto> {
+    return this.http.put<OrderChannelDto>(`${this.baseUrl}/canales/${id}`, request);
+  }
+
+  /**
+   * Elimina un canal de forma logica.
+   */
+  deleteChannel(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/canales/${id}`);
+  }
+
+  /**
+   * Restaura un canal eliminado.
+   */
+  restoreChannel(id: string): Observable<OrderChannelDto> {
+    return this.http.post<OrderChannelDto>(`${this.baseUrl}/canales/${id}/restore`, {});
   }
 }

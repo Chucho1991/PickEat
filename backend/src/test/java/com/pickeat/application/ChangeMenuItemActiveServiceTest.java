@@ -31,6 +31,7 @@ class ChangeMenuItemActiveServiceTest {
                 DishType.POSTRE,
                 false,
                 false,
+                true,
                 BigDecimal.valueOf(4.0),
                 null,
                 Instant.now(),

@@ -58,6 +58,7 @@ public class MenuItemPersistenceAdapter implements MenuItemRepositoryPort {
         entity.setDishType(menuItem.getDishType());
         entity.setActive(menuItem.isActive());
         entity.setDeleted(menuItem.isDeleted());
+        entity.setApplyTax(menuItem.isApplyTax());
         entity.setPrice(menuItem.getPrice());
         entity.setImagePath(menuItem.getImagePath());
         entity.setCreatedAt(menuItem.getCreatedAt());
@@ -74,6 +75,7 @@ public class MenuItemPersistenceAdapter implements MenuItemRepositoryPort {
                 entity.getDishType(),
                 entity.isActive(),
                 entity.isDeleted(),
+                entity.isApplyTax(),
                 entity.getPrice(),
                 entity.getImagePath(),
                 entity.getCreatedAt(),

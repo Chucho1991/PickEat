@@ -30,6 +30,9 @@ public class MesaJpaEntity {
     @Column(name = "deleted", nullable = false)
     private boolean deleted;
 
+    @Column(name = "occupied", nullable = false)
+    private boolean occupied;
+
     public UUID getId() {
         return id;
     }
@@ -68,5 +71,13 @@ public class MesaJpaEntity {
 
     public void setDeleted(boolean deleted) {
         this.deleted = deleted;
+    }
+
+    public boolean isOccupied() {
+        return occupied;
+    }
+
+    public void setOccupied(boolean occupied) {
+        this.occupied = occupied;
     }
 }

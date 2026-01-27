@@ -43,6 +43,14 @@ import { AuthService } from '../../core/services/auth.service';
           </select>
           <span class="error-text" *ngIf="showRequired('activo')">Este campo es obligatorio.</span>
         </label>
+        <label class="field">
+          <span>Ocupacion</span>
+          <select formControlName="ocupada" [class.invalid]="isInvalid('ocupada')" [disabled]="!isSuperadmin">
+            <option [value]="false">LIBRE</option>
+            <option [value]="true">OCUPADA</option>
+          </select>
+          <span class="error-text" *ngIf="showRequired('ocupada')">Este campo es obligatorio.</span>
+        </label>
         <div class="form-actions">
           <button class="btn btn-primary" type="submit" [disabled]="form.invalid">Guardar</button>
           <button class="btn btn-ghost" type="button" (click)="back()">Cancelar</button>
@@ -66,7 +74,8 @@ export class MesasFormPageComponent implements OnInit {
   form = this.formBuilder.group({
     description: ['', Validators.required],
     seats: [1, [Validators.required, Validators.min(1)]],
-    activo: [{ value: true, disabled: !this.isSuperadmin }, Validators.required]
+    activo: [{ value: true, disabled: !this.isSuperadmin }, Validators.required],
+    ocupada: [{ value: false, disabled: !this.isSuperadmin }, Validators.required]
   });
 
   ngOnInit() {
@@ -79,7 +88,8 @@ export class MesasFormPageComponent implements OnInit {
           this.form.patchValue({
             description: mesa.description,
             seats: mesa.seats,
-            activo: mesa.activo
+            activo: mesa.activo,
+            ocupada: mesa.ocupada
           }),
         error: () => this.snackBar.open('No se pudo cargar la mesa', 'Cerrar', { duration: 3000 })
       });
@@ -96,7 +106,8 @@ export class MesasFormPageComponent implements OnInit {
     const payload: MesaRequest = {
       description: value.description ?? '',
       seats: Number(value.seats ?? 0),
-      activo: value.activo ?? true
+      activo: value.activo ?? true,
+      ocupada: value.ocupada ?? false
     };
 
     const request$ = this.isEdit && this.mesaId

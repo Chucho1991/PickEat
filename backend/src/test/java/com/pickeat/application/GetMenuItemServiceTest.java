@@ -30,6 +30,7 @@ class GetMenuItemServiceTest {
                 DishType.ENTRADA,
                 true,
                 false,
+                true,
                 BigDecimal.valueOf(3.5),
                 null,
                 Instant.now(),

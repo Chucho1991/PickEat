@@ -43,6 +43,7 @@ public class UpdateMenuItemService implements UpdateMenuItemUseCase {
         existing.setNickname(menuItem.getNickname());
         existing.setDishType(menuItem.getDishType());
         existing.setActive(menuItem.isActive());
+        existing.setApplyTax(menuItem.isApplyTax());
         existing.setPrice(menuItem.getPrice());
         existing.setUpdatedAt(Instant.now());
         return repository.save(existing);

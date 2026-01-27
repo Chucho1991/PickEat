@@ -9,17 +9,19 @@ public class Mesa {
     private int seats;
     private boolean active;
     private boolean deleted;
+    private boolean occupied;
 
-    public Mesa(MesaId id, String description, int seats, boolean active, boolean deleted) {
+    public Mesa(MesaId id, String description, int seats, boolean active, boolean deleted, boolean occupied) {
         this.id = id;
         this.description = description;
         this.seats = seats;
         this.active = active;
         this.deleted = deleted;
+        this.occupied = occupied;
     }
 
     public static Mesa createNew(String description, int seats, boolean active) {
-        return new Mesa(MesaId.newId(), description, seats, active, false);
+        return new Mesa(MesaId.newId(), description, seats, active, false, false);
     }
 
     public MesaId getId() {
@@ -60,5 +62,13 @@ public class Mesa {
 
     public void setDeleted(boolean deleted) {
         this.deleted = deleted;
+    }
+
+    public boolean isOccupied() {
+        return occupied;
+    }
+
+    public void setOccupied(boolean occupied) {
+        this.occupied = occupied;
     }
 }

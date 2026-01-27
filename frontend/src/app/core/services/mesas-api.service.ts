@@ -12,6 +12,7 @@ export interface MesaDto {
   seats: number;
   activo: boolean;
   deleted: boolean;
+  ocupada: boolean;
 }
 
 /**
@@ -21,6 +22,7 @@ export interface MesaRequest {
   description: string;
   seats: number;
   activo: boolean;
+  ocupada: boolean;
 }
 
 /**

@@ -14,6 +14,7 @@ export interface MenuItemDto {
   dishType: string;
   activo: boolean;
   deleted: boolean;
+  aplicaImpuesto: boolean;
   price: number;
   imagePath?: string | null;
   createdAt: string;
@@ -29,6 +30,7 @@ export interface MenuItemRequest {
   nickname: string;
   dishType: string;
   activo: boolean;
+  aplicaImpuesto: boolean;
   price: number;
 }
 

@@ -41,6 +41,7 @@ class UploadMenuItemImageServiceTest {
                 DishType.COMBO,
                 true,
                 false,
+                true,
                 BigDecimal.valueOf(9.99),
                 null,
                 Instant.now(),

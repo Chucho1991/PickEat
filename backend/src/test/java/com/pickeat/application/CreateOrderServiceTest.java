@@ -9,8 +9,11 @@ import com.pickeat.domain.MesaId;
 import com.pickeat.domain.Order;
 import com.pickeat.domain.OrderDraft;
 import com.pickeat.domain.OrderItemDraft;
+import com.pickeat.domain.OrderChannel;
+import com.pickeat.domain.OrderChannelId;
 import com.pickeat.ports.out.MenuItemRepositoryPort;
 import com.pickeat.ports.out.MesaRepositoryPort;
+import com.pickeat.ports.out.OrderChannelRepositoryPort;
 import com.pickeat.ports.out.OrderRepositoryPort;
 import com.pickeat.ports.out.ParameterRepositoryPort;
 import org.junit.jupiter.api.Test;
@@ -32,24 +35,41 @@ class CreateOrderServiceTest {
         MesaRepositoryPort mesaRepository = Mockito.mock(MesaRepositoryPort.class);
         MenuItemRepositoryPort menuItemRepository = Mockito.mock(MenuItemRepositoryPort.class);
         ParameterRepositoryPort parameterRepository = Mockito.mock(ParameterRepositoryPort.class);
-        CreateOrderService service = new CreateOrderService(orderRepository, mesaRepository, menuItemRepository, parameterRepository);
+        OrderChannelRepositoryPort orderChannelRepository = Mockito.mock(OrderChannelRepositoryPort.class);
+        CreateOrderService service = new CreateOrderService(orderRepository, mesaRepository, menuItemRepository, parameterRepository, orderChannelRepository);
 
-        Mesa mesa = new Mesa(new MesaId(UUID.randomUUID()), "Mesa 1", 4, true, false);
+        Mesa mesa = new Mesa(new MesaId(UUID.randomUUID()), "Mesa 1", 4, true, false, false);
         MenuItem menuItem = MenuItem.createNew(
                 "Hamburguesa artesanal con doble queso",
                 "Hamburguesa doble",
                 "hamburguesa-doble",
                 DishType.FUERTE,
                 true,
+                true,
                 BigDecimal.valueOf(10.00)
         );
         OrderDraft draft = new OrderDraft(
                 mesa.getId(),
-                List.of(new OrderItemDraft(menuItem.getId(), 2))
+                List.of(new OrderItemDraft(menuItem.getId(), 2)),
+                null,
+                null,
+                null,
+                true
+        );
+        OrderChannel channel = new OrderChannel(
+                new OrderChannelId(UUID.randomUUID()),
+                "LOCAL",
+                true,
+                false,
+                true,
+                true,
+                java.time.Instant.now(),
+                java.time.Instant.now()
         );
 
         when(mesaRepository.findById(mesa.getId())).thenReturn(Optional.of(mesa));
         when(menuItemRepository.findById(menuItem.getId())).thenReturn(Optional.of(menuItem));
+        when(orderChannelRepository.findDefault()).thenReturn(Optional.of(channel));
         when(parameterRepository.findByKey("TAX_RATE")).thenReturn(Optional.of(new AppParameter("TAX_RATE", BigDecimal.valueOf(10), null, null)));
         when(parameterRepository.findByKey("TIP_TYPE")).thenReturn(Optional.of(new AppParameter("TIP_TYPE", null, "PERCENTAGE", null)));
         when(parameterRepository.findByKey("TIP_VALUE")).thenReturn(Optional.of(new AppParameter("TIP_VALUE", BigDecimal.valueOf(5), null, null)));

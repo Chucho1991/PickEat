@@ -61,6 +61,10 @@ import { environment } from '../../../environments/environment';
           </select>
           <span class="error-text" *ngIf="showRequired('activo')">Este campo es obligatorio.</span>
         </label>
+        <label class="checkbox">
+          <input type="checkbox" formControlName="aplicaImpuesto" />
+          <span>Aplica impuesto</span>
+        </label>
         <label class="field full-width">
           <span>Imagen (se redimensiona automaticamente)</span>
           <input type="file" accept="image/png, image/jpeg" (change)="onFileSelected($event)" />
@@ -103,7 +107,8 @@ export class MenuFormPageComponent implements OnInit {
     nickname: ['', Validators.required],
     dishType: ['', Validators.required],
     price: [0, [Validators.required, Validators.min(0)]],
-    activo: [{ value: 'true', disabled: !this.isSuperadmin }, Validators.required]
+    activo: [{ value: 'true', disabled: !this.isSuperadmin }, Validators.required],
+    aplicaImpuesto: [true]
   });
 
   /**
@@ -122,7 +127,8 @@ export class MenuFormPageComponent implements OnInit {
             nickname: item.nickname,
             dishType: item.dishType,
             price: item.price,
-            activo: item.activo ? 'true' : 'false'
+            activo: item.activo ? 'true' : 'false',
+            aplicaImpuesto: item.aplicaImpuesto
           });
           this.existingImagePath = item.imagePath ?? null;
         },
@@ -148,7 +154,8 @@ export class MenuFormPageComponent implements OnInit {
       nickname: value.nickname ?? '',
       dishType: value.dishType ?? '',
       price: Number(value.price ?? 0),
-      activo: activeValue
+      activo: activeValue,
+      aplicaImpuesto: Boolean(value.aplicaImpuesto)
     };
 
     const request$ = this.isEdit && this.menuId ? this.menuApi.update(this.menuId, payload) : this.menuApi.create(payload);

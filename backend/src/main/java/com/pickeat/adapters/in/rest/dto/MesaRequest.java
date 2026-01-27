@@ -17,6 +17,9 @@ public class MesaRequest {
     @NotNull
     private Boolean activo;
 
+    @NotNull
+    private Boolean ocupada;
+
     public String getDescription() {
         return description;
     }
@@ -39,5 +42,13 @@ public class MesaRequest {
 
     public void setActivo(Boolean activo) {
         this.activo = activo;
+    }
+
+    public Boolean getOcupada() {
+        return ocupada;
+    }
+
+    public void setOcupada(Boolean ocupada) {
+        this.ocupada = ocupada;
     }
 }

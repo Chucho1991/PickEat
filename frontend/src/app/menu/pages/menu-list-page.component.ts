@@ -64,6 +64,7 @@ import { debounceTime, distinctUntilChanged, map, takeUntil } from 'rxjs/operato
               <th>Descripcion corta</th>
               <th>Tipo</th>
               <th>Precio</th>
+              <th>Impuesto</th>
               <th>Activo</th>
               <th class="text-right">Acciones</th>
             </tr>
@@ -80,6 +81,11 @@ import { debounceTime, distinctUntilChanged, map, takeUntil } from 'rxjs/operato
               <td>{{ item.shortDescription }}</td>
               <td>{{ item.dishType }}</td>
               <td>{{ item.price | currency: 'USD':'symbol':'1.2-2' }}</td>
+              <td>
+                <span class="badge" [class.badge-success]="item.aplicaImpuesto" [class.badge-muted]="!item.aplicaImpuesto">
+                  {{ item.aplicaImpuesto ? 'Si' : 'No' }}
+                </span>
+              </td>
               <td>
                 <span class="badge badge-danger" *ngIf="item.deleted; else statusBadge">Eliminado</span>
                 <ng-template #statusBadge>
@@ -120,7 +126,7 @@ import { debounceTime, distinctUntilChanged, map, takeUntil } from 'rxjs/operato
               </td>
             </tr>
             <tr *ngIf="items.length === 0">
-              <td colspan="7">
+              <td colspan="8">
                 <div class="empty-state">
                   <p>No hay items disponibles.</p>
                 </div>

@@ -26,6 +26,9 @@ public class MenuItemRequest {
     @NotNull(message = "El estado es obligatorio.")
     private Boolean activo;
 
+    @NotNull(message = "Debes indicar si aplica impuesto.")
+    private Boolean aplicaImpuesto;
+
     @NotNull(message = "El precio es obligatorio.")
     @DecimalMin(value = "0.00", inclusive = true, message = "El precio debe ser mayor o igual a 0.")
     private BigDecimal price;
@@ -68,6 +71,14 @@ public class MenuItemRequest {
 
     public void setActivo(Boolean activo) {
         this.activo = activo;
+    }
+
+    public Boolean getAplicaImpuesto() {
+        return aplicaImpuesto;
+    }
+
+    public void setAplicaImpuesto(Boolean aplicaImpuesto) {
+        this.aplicaImpuesto = aplicaImpuesto;
     }
 
     public BigDecimal getPrice() {

@@ -32,6 +32,9 @@ public class OrderJpaEntity {
     @Column(name = "mesa_id", nullable = false)
     private UUID mesaId;
 
+    @Column(name = "channel_id", nullable = false)
+    private UUID channelId;
+
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<OrderItemJpaEntity> items = new ArrayList<>();
 
@@ -55,6 +58,15 @@ public class OrderJpaEntity {
 
     @Column(name = "currency_symbol", nullable = false, length = 10)
     private String currencySymbol;
+
+    @Column(name = "status", nullable = false, length = 20)
+    private String status;
+
+    @Column(name = "active", nullable = false)
+    private boolean active;
+
+    @Column(name = "deleted", nullable = false)
+    private boolean deleted;
 
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
@@ -84,6 +96,14 @@ public class OrderJpaEntity {
 
     public void setMesaId(UUID mesaId) {
         this.mesaId = mesaId;
+    }
+
+    public UUID getChannelId() {
+        return channelId;
+    }
+
+    public void setChannelId(UUID channelId) {
+        this.channelId = channelId;
     }
 
     public List<OrderItemJpaEntity> getItems() {
@@ -148,6 +168,30 @@ public class OrderJpaEntity {
 
     public void setCurrencySymbol(String currencySymbol) {
         this.currencySymbol = currencySymbol;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
+    }
+
+    public boolean isDeleted() {
+        return deleted;
+    }
+
+    public void setDeleted(boolean deleted) {
+        this.deleted = deleted;
     }
 
     public Instant getCreatedAt() {

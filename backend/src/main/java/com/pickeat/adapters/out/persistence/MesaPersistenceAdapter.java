@@ -52,6 +52,7 @@ public class MesaPersistenceAdapter implements MesaRepositoryPort {
         entity.setSeats(mesa.getSeats());
         entity.setActive(mesa.isActive());
         entity.setDeleted(mesa.isDeleted());
+        entity.setOccupied(mesa.isOccupied());
         return entity;
     }
 
@@ -61,7 +62,8 @@ public class MesaPersistenceAdapter implements MesaRepositoryPort {
                 entity.getDescription(),
                 entity.getSeats(),
                 entity.isActive(),
-                entity.isDeleted()
+                entity.isDeleted(),
+                entity.isOccupied()
         );
     }
 }

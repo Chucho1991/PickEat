@@ -37,6 +37,7 @@ import { AuthService } from '../../core/services/auth.service';
               <th>Descripcion</th>
               <th>Sillas</th>
               <th>Estado</th>
+              <th>Ocupacion</th>
               <th class="text-right">Acciones</th>
             </tr>
           </thead>
@@ -51,6 +52,11 @@ import { AuthService } from '../../core/services/auth.service';
                     {{ mesa.activo ? 'Activo' : 'Inactivo' }}
                   </span>
                 </ng-template>
+              </td>
+              <td>
+                <span class="badge" [class.badge-danger]="mesa.ocupada" [class.badge-success]="!mesa.ocupada">
+                  {{ mesa.ocupada ? 'Ocupada' : 'Libre' }}
+                </span>
               </td>
               <td class="text-right">
                 <a class="btn btn-ghost btn-sm icon-btn" [routerLink]="['/mesas', mesa.id, 'edit']" title="Editar" aria-label="Editar">
@@ -82,7 +88,7 @@ import { AuthService } from '../../core/services/auth.service';
               </td>
             </tr>
             <tr *ngIf="mesas.length === 0">
-              <td colspan="4">
+              <td colspan="5">
                 <div class="empty-state">
                   <p>No hay mesas registradas.</p>
                 </div>

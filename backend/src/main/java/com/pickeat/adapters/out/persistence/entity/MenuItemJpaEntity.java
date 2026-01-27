@@ -42,6 +42,9 @@ public class MenuItemJpaEntity {
     @Column(name = "deleted", nullable = false)
     private boolean deleted;
 
+    @Column(name = "apply_tax", nullable = false)
+    private boolean applyTax;
+
     @Column(name = "price", nullable = false, precision = 10, scale = 2)
     private BigDecimal price;
 
@@ -163,6 +166,14 @@ public class MenuItemJpaEntity {
 
     public void setDeleted(boolean deleted) {
         this.deleted = deleted;
+    }
+
+    public boolean isApplyTax() {
+        return applyTax;
+    }
+
+    public void setApplyTax(boolean applyTax) {
+        this.applyTax = applyTax;
     }
 
     /**

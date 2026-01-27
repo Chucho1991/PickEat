@@ -5,6 +5,8 @@ import com.pickeat.domain.MenuItemId;
 import com.pickeat.domain.Mesa;
 import com.pickeat.domain.MesaId;
 import com.pickeat.domain.Order;
+import com.pickeat.domain.OrderChannel;
+import com.pickeat.domain.OrderChannelId;
 import com.pickeat.domain.OrderConfig;
 import com.pickeat.domain.OrderDraft;
 import com.pickeat.domain.OrderItem;
@@ -13,6 +15,7 @@ import com.pickeat.domain.TipType;
 import com.pickeat.ports.in.CreateOrderUseCase;
 import com.pickeat.ports.out.MenuItemRepositoryPort;
 import com.pickeat.ports.out.MesaRepositoryPort;
+import com.pickeat.ports.out.OrderChannelRepositoryPort;
 import com.pickeat.ports.out.OrderRepositoryPort;
 import com.pickeat.ports.out.ParameterRepositoryPort;
 import org.springframework.stereotype.Service;
@@ -34,15 +37,18 @@ public class CreateOrderService implements CreateOrderUseCase {
     private final MesaRepositoryPort mesaRepository;
     private final MenuItemRepositoryPort menuItemRepository;
     private final ParameterRepositoryPort parameterRepository;
+    private final OrderChannelRepositoryPort orderChannelRepository;
 
     public CreateOrderService(OrderRepositoryPort orderRepository,
                               MesaRepositoryPort mesaRepository,
                               MenuItemRepositoryPort menuItemRepository,
-                              ParameterRepositoryPort parameterRepository) {
+                              ParameterRepositoryPort parameterRepository,
+                              OrderChannelRepositoryPort orderChannelRepository) {
         this.orderRepository = orderRepository;
         this.mesaRepository = mesaRepository;
         this.menuItemRepository = menuItemRepository;
         this.parameterRepository = parameterRepository;
+        this.orderChannelRepository = orderChannelRepository;
     }
 
     @Override
@@ -58,10 +64,15 @@ public class CreateOrderService implements CreateOrderUseCase {
         if (!mesa.isActive() || mesa.isDeleted()) {
             throw new IllegalArgumentException("La mesa no esta disponible.");
         }
+        if (mesa.isOccupied()) {
+            throw new IllegalArgumentException("La mesa ya esta ocupada.");
+        }
+        OrderChannel channel = resolveChannel(draft.getChannelId());
 
         Map<MenuItemId, Integer> quantities = mergeQuantities(draft.getItems());
         List<OrderItem> items = new ArrayList<>();
         BigDecimal subtotal = BigDecimal.ZERO;
+        BigDecimal taxableSubtotal = BigDecimal.ZERO;
         for (Map.Entry<MenuItemId, Integer> entry : quantities.entrySet()) {
             int quantity = entry.getValue();
             if (quantity <= 0) {
@@ -77,19 +88,36 @@ public class CreateOrderService implements CreateOrderUseCase {
             lineTotal = lineTotal.setScale(2, RoundingMode.HALF_UP);
             items.add(new OrderItem(menuItem.getId(), quantity, unitPrice, lineTotal));
             subtotal = subtotal.add(lineTotal);
+            if (menuItem.isApplyTax()) {
+                taxableSubtotal = taxableSubtotal.add(lineTotal);
+            }
         }
         subtotal = subtotal.setScale(2, RoundingMode.HALF_UP);
+        taxableSubtotal = taxableSubtotal.setScale(2, RoundingMode.HALF_UP);
 
         OrderConfig config = loadConfig();
-        BigDecimal taxAmount = subtotal.multiply(config.getTaxRate().divide(ONE_HUNDRED, 4, RoundingMode.HALF_UP));
+        BigDecimal taxAmount = taxableSubtotal.multiply(config.getTaxRate().divide(ONE_HUNDRED, 4, RoundingMode.HALF_UP));
         taxAmount = taxAmount.setScale(2, RoundingMode.HALF_UP);
 
         BigDecimal baseForTip = subtotal.add(taxAmount);
+        boolean tipEnabled = draft.getTipEnabled() == null || draft.getTipEnabled();
         BigDecimal tipAmount;
-        if (config.getTipType() == TipType.FIXED) {
-            tipAmount = config.getTipValue();
+        if (!tipEnabled) {
+            tipAmount = BigDecimal.ZERO;
         } else {
-            tipAmount = baseForTip.multiply(config.getTipValue().divide(ONE_HUNDRED, 4, RoundingMode.HALF_UP));
+            TipType resolvedTipType = draft.getTipType() != null ? draft.getTipType() : config.getTipType();
+            if (resolvedTipType == TipType.FIXED) {
+                BigDecimal fixedValue = draft.getTipValue();
+                if (fixedValue == null) {
+                    throw new IllegalArgumentException("La propina fija es obligatoria.");
+                }
+                if (fixedValue.compareTo(BigDecimal.ZERO) < 0) {
+                    throw new IllegalArgumentException("La propina fija no puede ser negativa.");
+                }
+                tipAmount = fixedValue;
+            } else {
+                tipAmount = baseForTip.multiply(config.getTipValue().divide(ONE_HUNDRED, 4, RoundingMode.HALF_UP));
+            }
         }
         tipAmount = tipAmount.setScale(2, RoundingMode.HALF_UP);
 
@@ -99,6 +127,7 @@ public class CreateOrderService implements CreateOrderUseCase {
 
         Order order = Order.createNew(
                 mesa.getId(),
+                channel.getId(),
                 items,
                 subtotal,
                 taxAmount,
@@ -108,6 +137,8 @@ public class CreateOrderService implements CreateOrderUseCase {
                 config.getCurrencyCode(),
                 config.getCurrencySymbol()
         );
+        mesa.setOccupied(true);
+        mesaRepository.save(mesa);
         return orderRepository.save(order);
     }
 
@@ -156,5 +187,21 @@ public class CreateOrderService implements CreateOrderUseCase {
 
     private BigDecimal defaultIfNull(BigDecimal value) {
         return value == null ? BigDecimal.ZERO : value;
+    }
+
+    private OrderChannel resolveChannel(OrderChannelId channelId) {
+        OrderChannel channel;
+        if (channelId != null) {
+            channel = orderChannelRepository.findById(channelId)
+                    .orElseThrow(() -> new IllegalArgumentException("El canal no existe."));
+        } else {
+            channel = orderChannelRepository.findDefault()
+                    .orElseGet(() -> orderChannelRepository.findByName("LOCAL")
+                            .orElseThrow(() -> new IllegalArgumentException("No existe canal por defecto.")));
+        }
+        if (!channel.isActive() || channel.isDeleted()) {
+            throw new IllegalArgumentException("El canal no esta disponible.");
+        }
+        return channel;
     }
 }

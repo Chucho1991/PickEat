@@ -12,6 +12,7 @@ public class OrderResponse {
     private UUID id;
     private Long orderNumber;
     private UUID mesaId;
+    private UUID channelId;
     private List<OrderItemResponse> items;
     private BigDecimal subtotal;
     private BigDecimal taxAmount;
@@ -20,11 +21,15 @@ public class OrderResponse {
     private BigDecimal totalAmount;
     private String currencyCode;
     private String currencySymbol;
+    private String status;
+    private boolean activo;
+    private boolean deleted;
     private Instant createdAt;
 
     public OrderResponse(UUID id,
                          Long orderNumber,
                          UUID mesaId,
+                         UUID channelId,
                          List<OrderItemResponse> items,
                          BigDecimal subtotal,
                          BigDecimal taxAmount,
@@ -33,10 +38,14 @@ public class OrderResponse {
                          BigDecimal totalAmount,
                          String currencyCode,
                          String currencySymbol,
+                         String status,
+                         boolean activo,
+                         boolean deleted,
                          Instant createdAt) {
         this.id = id;
         this.orderNumber = orderNumber;
         this.mesaId = mesaId;
+        this.channelId = channelId;
         this.items = items;
         this.subtotal = subtotal;
         this.taxAmount = taxAmount;
@@ -45,6 +54,9 @@ public class OrderResponse {
         this.totalAmount = totalAmount;
         this.currencyCode = currencyCode;
         this.currencySymbol = currencySymbol;
+        this.status = status;
+        this.activo = activo;
+        this.deleted = deleted;
         this.createdAt = createdAt;
     }
 
@@ -58,6 +70,10 @@ public class OrderResponse {
 
     public UUID getMesaId() {
         return mesaId;
+    }
+
+    public UUID getChannelId() {
+        return channelId;
     }
 
     public List<OrderItemResponse> getItems() {
@@ -90,6 +106,18 @@ public class OrderResponse {
 
     public String getCurrencySymbol() {
         return currencySymbol;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public boolean isActivo() {
+        return activo;
+    }
+
+    public boolean isDeleted() {
+        return deleted;
     }
 
     public Instant getCreatedAt() {

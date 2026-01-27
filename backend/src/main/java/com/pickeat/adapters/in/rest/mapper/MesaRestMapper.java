@@ -9,11 +9,13 @@ import com.pickeat.domain.Mesa;
  */
 public class MesaRestMapper {
     public Mesa toDomain(MesaRequest request) {
-        return Mesa.createNew(
+        Mesa mesa = Mesa.createNew(
                 request.getDescription(),
                 request.getSeats(),
                 Boolean.TRUE.equals(request.getActivo())
         );
+        mesa.setOccupied(Boolean.TRUE.equals(request.getOcupada()));
+        return mesa;
     }
 
     public Mesa toUpdateDomain(MesaRequest request) {
@@ -22,7 +24,8 @@ public class MesaRestMapper {
                 request.getDescription(),
                 request.getSeats(),
                 Boolean.TRUE.equals(request.getActivo()),
-                false
+                false,
+                Boolean.TRUE.equals(request.getOcupada())
         );
     }
 
@@ -32,7 +35,8 @@ public class MesaRestMapper {
                 mesa.getDescription(),
                 mesa.getSeats(),
                 mesa.isActive(),
-                mesa.isDeleted()
+                mesa.isDeleted(),
+                mesa.isOccupied()
         );
     }
 }

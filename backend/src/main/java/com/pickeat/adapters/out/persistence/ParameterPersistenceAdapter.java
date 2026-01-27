@@ -6,6 +6,7 @@ import com.pickeat.domain.AppParameter;
 import com.pickeat.ports.out.ParameterRepositoryPort;
 import org.springframework.stereotype.Component;
 
+import java.time.Instant;
 import java.util.Optional;
 
 /**
@@ -22,6 +23,17 @@ public class ParameterPersistenceAdapter implements ParameterRepositoryPort {
     @Override
     public Optional<AppParameter> findByKey(String key) {
         return repository.findById(key).map(this::toDomain);
+    }
+
+    @Override
+    public AppParameter save(AppParameter parameter) {
+        ParameterJpaEntity entity = repository.findById(parameter.getKey()).orElseGet(ParameterJpaEntity::new);
+        entity.setKey(parameter.getKey());
+        entity.setNumericValue(parameter.getNumericValue());
+        entity.setTextValue(parameter.getTextValue());
+        entity.setBooleanValue(parameter.getBooleanValue());
+        entity.setUpdatedAt(Instant.now());
+        return toDomain(repository.save(entity));
     }
 
     private AppParameter toDomain(ParameterJpaEntity entity) {

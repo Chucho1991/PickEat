@@ -26,6 +26,7 @@ class GetOrderServiceTest {
                 orderId,
                 1L,
                 new com.pickeat.domain.MesaId(UUID.randomUUID()),
+                new com.pickeat.domain.OrderChannelId(UUID.randomUUID()),
                 List.of(),
                 BigDecimal.ZERO,
                 BigDecimal.ZERO,
@@ -34,6 +35,9 @@ class GetOrderServiceTest {
                 BigDecimal.ZERO,
                 "USD",
                 "$",
+                com.pickeat.domain.OrderStatus.CREADA,
+                true,
+                false,
                 Instant.now(),
                 Instant.now()
         );

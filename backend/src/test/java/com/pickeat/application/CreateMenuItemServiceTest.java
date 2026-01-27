@@ -24,6 +24,7 @@ class CreateMenuItemServiceTest {
                 "hamburguesa-doble",
                 DishType.FUERTE,
                 true,
+                true,
                 BigDecimal.valueOf(12.5)
         );
 

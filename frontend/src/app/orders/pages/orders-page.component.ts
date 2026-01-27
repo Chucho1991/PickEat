@@ -2,10 +2,12 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { ActivatedRoute, Router } from '@angular/router';
 import { MenuApiService, MenuItemDto } from '../../core/services/menu-api.service';
 import { MesasApiService, MesaDto } from '../../core/services/mesas-api.service';
-import { OrderConfigDto, OrdersApiService } from '../../core/services/orders-api.service';
+import { OrderChannelDto, OrderConfigDto, OrderResponse, OrdersApiService, OrderStatus } from '../../core/services/orders-api.service';
 import { environment } from '../../../environments/environment';
+import { AuthService } from '../../core/services/auth.service';
 
 interface OrderLine {
   menuItem: MenuItemDto;
@@ -22,31 +24,59 @@ interface OrderLine {
   standalone: true,
   imports: [CommonModule, FormsModule, MatSnackBarModule],
   template: `
-    <div class="page-header">
-      <div>
-        <h2 class="page-title">Ordenes</h2>
-        <p class="page-subtitle">Crea una orden asignada a una mesa.</p>
-      </div>
-      <button class="btn btn-primary" type="button" (click)="saveOrder()">Guardar orden</button>
-    </div>
-
-    <div class="card order-header-card">
+    <div class="card order-header-card" *ngIf="hasMesaSelected">
       <div class="order-header">
         <div>
           <p class="order-label">Orden No.</p>
           <h3 class="order-number">{{ orderNumberDisplay }}</h3>
         </div>
-        <label class="field">
-          <span>Mesa</span>
-          <select [(ngModel)]="selectedMesaId">
-            <option value="">Selecciona una mesa</option>
-            <option *ngFor="let mesa of mesas" [value]="mesa.id">{{ mesa.description }}</option>
-          </select>
-        </label>
+        <div class="field">
+          <span>Mesa seleccionada</span>
+          <p class="mesa-selected-label">{{ selectedMesaLabel || 'Sin seleccionar' }}</p>
+        </div>
+        <div class="field channel-field">
+          <span>Canal</span>
+          <div class="channel-options">
+            <label class="checkbox channel-option" *ngFor="let channel of channels">
+              <input
+                type="checkbox"
+                [checked]="selectedChannelId === channel.id"
+                (change)="selectChannel(channel.id)"
+              />
+              <span>{{ channel.name }}</span>
+            </label>
+          </div>
+        </div>
+        <button class="btn btn-primary" type="button" (click)="saveOrder()">{{ isEditMode ? 'Actualizar orden' : 'Guardar orden' }}</button>
       </div>
     </div>
 
-    <div class="orders-layout">
+    <div class="card mesa-dashboard" *ngIf="!hasMesaSelected">
+      <div class="mesa-dashboard-header">
+        <div>
+          <h3 class="section-title">Selecciona una mesa libre</h3>
+          <p class="section-subtitle">Al elegirla podras continuar con la orden.</p>
+        </div>
+      </div>
+      <div class="mesa-grid">
+        <button
+          class="mesa-card"
+          type="button"
+          *ngFor="let mesa of mesasDisponibles"
+          [class.mesa-selected]="selectedMesaId === mesa.id"
+          [ngStyle]="mesaStyle(mesa)"
+          (click)="selectMesa(mesa)"
+        >
+          <span class="mesa-name">{{ mesa.description }}</span>
+          <span class="mesa-seats">{{ mesa.seats }} puestos</span>
+        </button>
+      </div>
+      <div class="empty-state" *ngIf="mesasDisponibles.length === 0">
+        <p>No hay mesas libres disponibles.</p>
+      </div>
+    </div>
+
+    <div class="orders-layout" *ngIf="hasMesaSelected">
       <section class="card">
         <div class="order-menu-header">
           <div>
@@ -100,10 +130,76 @@ interface OrderLine {
           <p class="section-subtitle">{{ orderItems.length }} items agregados</p>
         </div>
 
+        <div class="order-status" *ngIf="loadedOrder">
+          <div class="order-status-header">
+            <span class="detail-label">Estado</span>
+            <span class="badge" [class]="statusBadgeClass(orderStatus)">{{ statusLabel(orderStatus) }}</span>
+          </div>
+          <div class="status-actions" *ngIf="canManageStatus && !loadedOrder.deleted">
+            <button class="btn btn-ghost btn-sm icon-btn" type="button" (click)="setStatus('CREADA')" title="Creada" aria-label="Creada">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M12 6V18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path>
+                <path d="M6 12H18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path>
+              </svg>
+            </button>
+            <button class="btn btn-ghost btn-sm icon-btn" type="button" (click)="setStatus('PREPARANDOSE')" title="Preparandose" aria-label="Preparandose">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M12 8V12L14.5 13.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                <path d="M3.5 12C3.5 7.30558 7.30558 3.5 12 3.5C16.6944 3.5 20.5 7.30558 20.5 12C20.5 16.6944 16.6944 20.5 12 20.5C7.30558 20.5 3.5 16.6944 3.5 12Z" stroke="currentColor" stroke-width="1.5"></path>
+              </svg>
+            </button>
+            <button class="btn btn-ghost btn-sm icon-btn" type="button" (click)="setStatus('DESPACHADA')" title="Despachada" aria-label="Despachada">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M3 7H15V17H3V7Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                <path d="M15 10H19L21 12V17H15V10Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                <path d="M7 17V19" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path>
+                <path d="M17 17V19" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path>
+              </svg>
+            </button>
+            <button class="btn btn-ghost btn-sm icon-btn" type="button" (click)="setStatus('PAGADA')" title="Pagada" aria-label="Pagada">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M5 13L9 17L19 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+              </svg>
+            </button>
+            <button class="btn btn-ghost btn-sm icon-btn" type="button" (click)="setStatus('INACTIVA')" title="Inactiva" aria-label="Inactiva">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M6 6H8V18H6V6Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                <path d="M16 6H18V18H16V6Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="tip-config">
+          <label class="field">
+            <span>Tipo de propina</span>
+            <select [(ngModel)]="tipType">
+              <option value="NONE">Sin propina</option>
+              <option value="PERCENTAGE">Porcentaje ({{ config.tipValue }}%)</option>
+              <option value="FIXED">Valor fijo</option>
+            </select>
+          </label>
+          <ng-container *ngIf="tipType !== 'NONE'">
+            <label class="field" *ngIf="tipType === 'FIXED'; else percentTip">
+              <span>Propina en dinero</span>
+              <input type="number" min="0" step="0.01" [(ngModel)]="fixedTipAmount" />
+            </label>
+            <ng-template #percentTip>
+              <label class="field">
+                <span>Propina (%)</span>
+                <input type="number" [value]="config.tipValue" disabled />
+              </label>
+            </ng-template>
+          </ng-container>
+        </div>
+
         <div class="order-items">
           <div class="order-item-row" *ngFor="let line of orderItems">
             <div class="order-item-main">
-              <p class="order-item-name">{{ line.menuItem.nickname }}</p>
+              <div class="order-item-title">
+                <p class="order-item-name">{{ line.menuItem.nickname }}</p>
+                <span *ngIf="line.menuItem.aplicaImpuesto" class="tax-flag" title="Aplica impuesto">I</span>
+              </div>
               <p class="order-item-meta">{{ line.menuItem.shortDescription }}</p>
             </div>
             <div class="order-item-qty">
@@ -170,15 +266,29 @@ export class OrdersPageComponent implements OnInit {
   private mesasApi = inject(MesasApiService);
   private ordersApi = inject(OrdersApiService);
   private snackBar = inject(MatSnackBar);
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  private authService = inject(AuthService);
 
   menuItems: MenuItemDto[] = [];
   filteredMenuItems: MenuItemDto[] = [];
   mesas: MesaDto[] = [];
   orderItems: OrderLine[] = [];
   selectedMesaId = '';
+  selectedChannelId = '';
+  channels: OrderChannelDto[] = [];
   selectedDishType = '';
   searchTerm = '';
   orderNumber?: number;
+  tipType: 'PERCENTAGE' | 'FIXED' | 'NONE' = 'NONE';
+  fixedTipAmount = 0;
+  isEditMode = false;
+  editingOrderId: string | null = null;
+  loadedOrder: OrderResponse | null = null;
+  private hasSyncedOrderItems = false;
+  orderStatus: OrderStatus = 'CREADA';
+  canManageStatus = this.authService.hasRole(['SUPERADMINISTRADOR', 'ADMINISTRADOR']);
+  private mesaPalette = ['#fde68a', '#bfdbfe', '#bbf7d0', '#fecaca', '#fbcfe8', '#ddd6fe', '#fee2e2', '#cffafe'];
   config: OrderConfigDto = {
     taxRate: 0,
     tipType: 'PERCENTAGE',
@@ -194,7 +304,18 @@ export class OrdersPageComponent implements OnInit {
   ngOnInit() {
     this.loadConfig();
     this.loadMesas();
+    this.loadChannels();
     this.loadMenuItems();
+    this.route.paramMap.subscribe((params) => {
+      const orderId = params.get('id');
+      this.isEditMode = Boolean(orderId);
+      this.editingOrderId = orderId;
+      if (orderId) {
+        this.loadOrder(orderId);
+      } else {
+        this.resetOrder();
+      }
+    });
   }
 
   /**
@@ -265,21 +386,62 @@ export class OrdersPageComponent implements OnInit {
       this.snackBar.open('Debes agregar al menos un item.', 'Cerrar', { duration: 3000 });
       return;
     }
+    if (this.tipType === 'FIXED' && this.fixedTipAmount < 0) {
+      this.snackBar.open('La propina fija no puede ser negativa.', 'Cerrar', { duration: 3000 });
+      return;
+    }
     const request = {
       mesaId: this.selectedMesaId,
+      channelId: this.selectedChannelId || undefined,
       items: this.orderItems.map((line) => ({
         menuItemId: line.menuItem.id,
         quantity: line.quantity
-      }))
+      })),
+      tipType: this.tipType === 'NONE' ? undefined : this.tipType,
+      tipValue: this.tipType === 'FIXED' ? Number(this.fixedTipAmount || 0) : undefined,
+      tipEnabled: this.tipType !== 'NONE'
     };
+    if (this.isEditMode && this.editingOrderId) {
+      this.ordersApi.update(this.editingOrderId, request).subscribe({
+        next: (order) => {
+          this.orderNumber = order.orderNumber;
+          this.snackBar.open('Orden actualizada', 'Cerrar', { duration: 3000 });
+          this.router.navigate(['/ordenes/lista']);
+        },
+        error: (error) => this.snackBar.open(error?.error?.error || 'No se pudo actualizar la orden', 'Cerrar', { duration: 3000 })
+      });
+      return;
+    }
     this.ordersApi.create(request).subscribe({
       next: (order) => {
         this.orderNumber = order.orderNumber;
         this.snackBar.open('Orden creada', 'Cerrar', { duration: 3000 });
+        this.loadMesas();
         this.resetOrder();
       },
       error: (error) => this.snackBar.open(error?.error?.error || 'No se pudo crear la orden', 'Cerrar', { duration: 3000 })
     });
+  }
+
+  /**
+   * Etiqueta de mesa seleccionada.
+   */
+  get selectedMesaLabel() {
+    return this.mesas.find((mesa) => mesa.id === this.selectedMesaId)?.description ?? '';
+  }
+
+  /**
+   * Determina si ya se selecciono una mesa.
+   */
+  get hasMesaSelected() {
+    return Boolean(this.selectedMesaId);
+  }
+
+  /**
+   * Lista de mesas libres para seleccionar.
+   */
+  get mesasDisponibles() {
+    return this.mesas.filter((mesa) => !mesa.ocupada || mesa.id === this.selectedMesaId);
   }
 
   /**
@@ -296,8 +458,11 @@ export class OrdersPageComponent implements OnInit {
    * Etiqueta de propina segun configuracion.
    */
   get tipLabel() {
-    if (this.config.tipType === 'FIXED') {
+    if (this.tipType === 'FIXED') {
       return 'Propina fija';
+    }
+    if (this.tipType === 'NONE') {
+      return 'Sin propina';
     }
     return `Propina (${this.config.tipValue}%)`;
   }
@@ -313,15 +478,18 @@ export class OrdersPageComponent implements OnInit {
    * Impuesto calculado.
    */
   get taxAmount() {
-    return this.round((this.subtotal * this.config.taxRate) / 100);
+    return this.round((this.taxableSubtotal * this.config.taxRate) / 100);
   }
 
   /**
    * Propina calculada.
    */
   get tipAmount() {
-    if (this.config.tipType === 'FIXED') {
-      return this.round(this.config.tipValue);
+    if (this.tipType === 'FIXED') {
+      return this.round(this.fixedTipAmount || 0);
+    }
+    if (this.tipType === 'NONE') {
+      return 0;
     }
     return this.round(((this.subtotal + this.taxAmount) * this.config.tipValue) / 100);
   }
@@ -338,6 +506,15 @@ export class OrdersPageComponent implements OnInit {
    */
   get totalAmount() {
     return this.round(this.subtotal + this.taxAmount + this.tipAmount - this.discountAmount);
+  }
+
+  /**
+   * Subtotal solo de items con impuesto.
+   */
+  get taxableSubtotal() {
+    return this.round(
+      this.orderItems.reduce((sum, item) => (item.menuItem.aplicaImpuesto ? sum + item.total : sum), 0)
+    );
   }
 
   /**
@@ -363,7 +540,10 @@ export class OrdersPageComponent implements OnInit {
 
   private loadConfig() {
     this.ordersApi.getConfig().subscribe({
-      next: (config) => (this.config = config),
+      next: (config) => {
+        this.config = config;
+        this.updateTipSelectionFromOrder();
+      },
       error: () => this.snackBar.open('No se pudo cargar la configuracion', 'Cerrar', { duration: 3000 })
     });
   }
@@ -377,6 +557,21 @@ export class OrdersPageComponent implements OnInit {
     });
   }
 
+  private loadChannels() {
+    this.ordersApi.listChannels(false).subscribe({
+      next: (channels) => {
+        this.channels = channels.filter((channel) => channel.activo && !channel.deleted);
+        if (!this.selectedChannelId) {
+          const defaultChannel = this.channels.find((channel) => channel.isDefault) ?? this.channels.find((channel) => channel.name === 'LOCAL');
+          if (defaultChannel) {
+            this.selectedChannelId = defaultChannel.id;
+          }
+        }
+      },
+      error: () => this.snackBar.open('No se pudo cargar canales', 'Cerrar', { duration: 3000 })
+    });
+  }
+
   private loadMenuItems() {
     this.menuApi
       .list({ dishType: this.selectedDishType || undefined, activo: true, search: this.searchTerm || undefined })
@@ -384,14 +579,210 @@ export class OrdersPageComponent implements OnInit {
         next: (items) => {
           this.menuItems = items.filter((item) => item.activo && !item.deleted);
           this.filteredMenuItems = [...this.menuItems];
+          this.syncOrderItems();
         },
         error: () => this.snackBar.open('No se pudo cargar menu', 'Cerrar', { duration: 3000 })
       });
   }
 
+  /**
+   * Carga la orden en modo edicion.
+   *
+   * @param id identificador de la orden.
+   */
+  private loadOrder(id: string) {
+    this.ordersApi.getById(id).subscribe({
+      next: (order) => {
+        if (order.deleted) {
+          this.snackBar.open('La orden esta eliminada.', 'Cerrar', { duration: 3000 });
+          this.router.navigate(['/ordenes/lista']);
+          return;
+        }
+        this.loadedOrder = order;
+        this.hasSyncedOrderItems = false;
+        this.orderNumber = order.orderNumber;
+        this.selectedMesaId = order.mesaId;
+        this.selectedChannelId = order.channelId;
+        this.orderStatus = order.status;
+        this.updateTipSelectionFromOrder();
+        this.syncOrderItems();
+      },
+      error: () => {
+        this.snackBar.open('No se pudo cargar la orden', 'Cerrar', { duration: 3000 });
+        this.router.navigate(['/ordenes/lista']);
+      }
+    });
+  }
+
+  private updateTipSelectionFromOrder() {
+    if (!this.loadedOrder) {
+      return;
+    }
+    const tipAmount = Number(this.loadedOrder.tipAmount);
+    if (tipAmount <= 0) {
+      this.tipType = 'NONE';
+      this.fixedTipAmount = 0;
+      return;
+    }
+    const expectedPercent = this.round(((this.loadedOrder.subtotal + this.loadedOrder.taxAmount) * this.config.tipValue) / 100);
+    if (this.config.tipValue > 0 && Math.abs(expectedPercent - tipAmount) > 0.01) {
+      this.tipType = 'FIXED';
+      this.fixedTipAmount = tipAmount;
+      return;
+    }
+    this.tipType = 'PERCENTAGE';
+    this.fixedTipAmount = tipAmount;
+  }
+
+  /**
+   * Sincroniza los items existentes de la orden con el catalogo.
+   */
+  private syncOrderItems() {
+    if (!this.loadedOrder || this.menuItems.length === 0 || this.hasSyncedOrderItems) {
+      return;
+    }
+    this.orderItems = this.loadedOrder.items.map((item) => {
+      const menuItem = this.menuItems.find((menu) => menu.id === item.menuItemId) ?? this.buildPlaceholderItem(item);
+      return {
+        menuItem,
+        quantity: item.quantity,
+        unitPrice: Number(item.unitPrice),
+        total: Number(item.totalPrice)
+      };
+    });
+    this.hasSyncedOrderItems = true;
+  }
+
+  /**
+   * Construye un placeholder para items no disponibles.
+   *
+   * @param item item base de la orden.
+   */
+  private buildPlaceholderItem(item: { menuItemId: string; unitPrice: number }) {
+    return {
+      id: item.menuItemId,
+      longDescription: 'No disponible',
+      shortDescription: 'No disponible',
+      nickname: 'Item eliminado',
+      dishType: 'OTRO',
+      activo: false,
+      deleted: true,
+      aplicaImpuesto: false,
+      price: item.unitPrice,
+      imagePath: null,
+      createdAt: '',
+      updatedAt: ''
+    } as MenuItemDto;
+  }
+
   private resetOrder() {
     this.selectedMesaId = '';
+    const defaultChannel = this.channels.find((channel) => channel.isDefault) ?? this.channels.find((channel) => channel.name === 'LOCAL');
+    this.selectedChannelId = defaultChannel ? defaultChannel.id : '';
     this.orderItems = [];
+    this.orderNumber = undefined;
+    this.loadedOrder = null;
+    this.isEditMode = false;
+    this.editingOrderId = null;
+    this.orderStatus = 'CREADA';
+    this.tipType = 'NONE';
+    this.fixedTipAmount = 0;
+    this.hasSyncedOrderItems = false;
+  }
+
+  selectMesa(mesa: MesaDto) {
+    this.selectedMesaId = mesa.id;
+  }
+
+  mesaStyle(mesa: MesaDto) {
+    const seats = Math.max(1, mesa.seats || 1);
+    const minSize = 90;
+    const maxSize = 180;
+    const size = Math.min(maxSize, minSize + seats * 12);
+    const height = Math.min(140, 70 + seats * 6);
+    return { width: `${size}px`, height: `${height}px`, background: this.mesaColor(mesa.id) };
+  }
+
+  selectChannel(channelId: string) {
+    this.selectedChannelId = channelId;
+  }
+
+  /**
+   * Color consistente por mesa.
+   *
+   * @param mesaId identificador de mesa.
+   */
+  mesaColor(mesaId: string) {
+    const hash = mesaId.split('').reduce((sum, char) => sum + char.charCodeAt(0), 0);
+    return this.mesaPalette[hash % this.mesaPalette.length];
+  }
+
+  /**
+   * Cambia el estado de la orden actual.
+   *
+   * @param status estado objetivo.
+   */
+  setStatus(status: OrderStatus) {
+    if (!this.loadedOrder) {
+      return;
+    }
+    this.ordersApi.changeStatus(this.loadedOrder.id, status).subscribe({
+      next: (order) => {
+        this.loadedOrder = order;
+        this.orderStatus = order.status;
+        this.snackBar.open('Estado actualizado', 'Cerrar', { duration: 3000 });
+        this.loadMesas();
+      },
+      error: (error) => this.snackBar.open(error?.error?.error || 'No se pudo actualizar el estado', 'Cerrar', { duration: 3000 })
+    });
+  }
+
+  /**
+   * Devuelve la etiqueta para el estado.
+   *
+   * @param status estado base.
+   */
+  statusLabel(status: OrderStatus) {
+    switch (status) {
+      case 'CREADA':
+        return 'Creada';
+      case 'PREPARANDOSE':
+        return 'Preparandose';
+      case 'DESPACHADA':
+        return 'Despachada';
+      case 'PAGADA':
+        return 'Pagada';
+      case 'INACTIVA':
+        return 'Inactiva';
+      case 'ELIMINADA':
+        return 'Eliminada';
+      default:
+        return status;
+    }
+  }
+
+  /**
+   * Devuelve la clase CSS para la etiqueta del estado.
+   *
+   * @param status estado base.
+   */
+  statusBadgeClass(status: OrderStatus) {
+    switch (status) {
+      case 'CREADA':
+        return 'badge badge-info';
+      case 'PREPARANDOSE':
+        return 'badge badge-warning';
+      case 'DESPACHADA':
+        return 'badge badge-primary';
+      case 'PAGADA':
+        return 'badge badge-success';
+      case 'INACTIVA':
+        return 'badge badge-muted';
+      case 'ELIMINADA':
+        return 'badge badge-danger';
+      default:
+        return 'badge badge-muted';
+    }
   }
 
   private round(value: number) {

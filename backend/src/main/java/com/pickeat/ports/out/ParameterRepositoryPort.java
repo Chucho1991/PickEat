@@ -9,4 +9,12 @@ import java.util.Optional;
  */
 public interface ParameterRepositoryPort {
     Optional<AppParameter> findByKey(String key);
+
+    /**
+     * Guarda el parametro indicado.
+     *
+     * @param parameter parametro a persistir.
+     * @return parametro guardado.
+     */
+    AppParameter save(AppParameter parameter);
 }

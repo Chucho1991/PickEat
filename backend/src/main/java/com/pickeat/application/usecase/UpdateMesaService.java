@@ -24,6 +24,7 @@ public class UpdateMesaService implements UpdateMesaUseCase {
         existing.setDescription(mesa.getDescription());
         existing.setSeats(mesa.getSeats());
         existing.setActive(mesa.isActive());
+        existing.setOccupied(mesa.isOccupied());
         return repository.save(existing);
     }
 }

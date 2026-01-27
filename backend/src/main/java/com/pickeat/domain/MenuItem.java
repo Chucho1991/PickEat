@@ -14,6 +14,7 @@ public class MenuItem {
     private DishType dishType;
     private boolean active;
     private boolean deleted;
+    private boolean applyTax;
     private BigDecimal price;
     private String imagePath;
     private Instant createdAt;
@@ -26,6 +27,7 @@ public class MenuItem {
                     DishType dishType,
                     boolean active,
                     boolean deleted,
+                    boolean applyTax,
                     BigDecimal price,
                     String imagePath,
                     Instant createdAt,
@@ -37,6 +39,7 @@ public class MenuItem {
         this.dishType = dishType;
         this.active = active;
         this.deleted = deleted;
+        this.applyTax = applyTax;
         this.price = price;
         this.imagePath = imagePath;
         this.createdAt = createdAt;
@@ -48,10 +51,11 @@ public class MenuItem {
                                      String nickname,
                                      DishType dishType,
                                      boolean active,
+                                     boolean applyTax,
                                      BigDecimal price) {
         Instant now = Instant.now();
         return new MenuItem(MenuItemId.newId(), longDescription, shortDescription, nickname,
-                dishType, active, false, price, null, now, now);
+                dishType, active, false, applyTax, price, null, now, now);
     }
 
     public MenuItemId getId() {
@@ -108,6 +112,14 @@ public class MenuItem {
 
     public void setDeleted(boolean deleted) {
         this.deleted = deleted;
+    }
+
+    public boolean isApplyTax() {
+        return applyTax;
+    }
+
+    public void setApplyTax(boolean applyTax) {
+        this.applyTax = applyTax;
     }
 
     public BigDecimal getPrice() {

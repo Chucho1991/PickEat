@@ -8,6 +8,7 @@ import com.pickeat.domain.MesaId;
 import com.pickeat.domain.Order;
 import com.pickeat.domain.OrderId;
 import com.pickeat.domain.OrderItem;
+import com.pickeat.domain.OrderStatus;
 import com.pickeat.ports.out.OrderRepositoryPort;
 import org.springframework.stereotype.Component;
 
@@ -34,6 +35,13 @@ public class OrderPersistenceAdapter implements OrderRepositoryPort {
     }
 
     @Override
+    public List<Order> findAll() {
+        return repository.findAll().stream()
+                .map(this::toDomain)
+                .toList();
+    }
+
+    @Override
     public Optional<Order> findById(OrderId id) {
         return repository.findById(id.getValue()).map(this::toDomain);
     }
@@ -43,6 +51,7 @@ public class OrderPersistenceAdapter implements OrderRepositoryPort {
         entity.setId(order.getId().getValue());
         entity.setOrderNumber(order.getOrderNumber());
         entity.setMesaId(order.getMesaId().getValue());
+        entity.setChannelId(order.getChannelId().getValue());
         entity.setSubtotal(order.getSubtotal());
         entity.setTaxAmount(order.getTaxAmount());
         entity.setTipAmount(order.getTipAmount());
@@ -50,6 +59,9 @@ public class OrderPersistenceAdapter implements OrderRepositoryPort {
         entity.setTotalAmount(order.getTotalAmount());
         entity.setCurrencyCode(order.getCurrencyCode());
         entity.setCurrencySymbol(order.getCurrencySymbol());
+        entity.setStatus(order.getStatus().name());
+        entity.setActive(order.isActive());
+        entity.setDeleted(order.isDeleted());
         entity.setCreatedAt(order.getCreatedAt());
         entity.setUpdatedAt(order.getUpdatedAt());
 
@@ -84,6 +96,7 @@ public class OrderPersistenceAdapter implements OrderRepositoryPort {
                 new OrderId(entity.getId()),
                 entity.getOrderNumber(),
                 new MesaId(entity.getMesaId()),
+                new com.pickeat.domain.OrderChannelId(entity.getChannelId()),
                 items,
                 entity.getSubtotal(),
                 entity.getTaxAmount(),
@@ -92,8 +105,28 @@ public class OrderPersistenceAdapter implements OrderRepositoryPort {
                 entity.getTotalAmount(),
                 entity.getCurrencyCode(),
                 entity.getCurrencySymbol(),
+                parseStatus(entity.getStatus()),
+                entity.isActive(),
+                entity.isDeleted(),
                 entity.getCreatedAt(),
                 entity.getUpdatedAt()
         );
+    }
+
+    /**
+     * Convierte el valor persistido a enum de estado.
+     *
+     * @param status valor persistido.
+     * @return estado resuelto.
+     */
+    private OrderStatus parseStatus(String status) {
+        if (status == null || status.isBlank()) {
+            return OrderStatus.CREADA;
+        }
+        try {
+            return OrderStatus.valueOf(status);
+        } catch (IllegalArgumentException ignored) {
+            return OrderStatus.CREADA;
+        }
     }
 }

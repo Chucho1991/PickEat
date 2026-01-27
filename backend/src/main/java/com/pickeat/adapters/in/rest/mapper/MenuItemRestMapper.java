@@ -15,6 +15,7 @@ public class MenuItemRestMapper {
                 request.getNickname(),
                 request.getDishType(),
                 Boolean.TRUE.equals(request.getActivo()),
+                Boolean.TRUE.equals(request.getAplicaImpuesto()),
                 request.getPrice()
         );
     }
@@ -28,6 +29,7 @@ public class MenuItemRestMapper {
                 request.getDishType(),
                 Boolean.TRUE.equals(request.getActivo()),
                 false,
+                Boolean.TRUE.equals(request.getAplicaImpuesto()),
                 request.getPrice(),
                 null,
                 null,
@@ -44,6 +46,7 @@ public class MenuItemRestMapper {
         response.setDishType(menuItem.getDishType());
         response.setActivo(menuItem.isActive());
         response.setDeleted(menuItem.isDeleted());
+        response.setAplicaImpuesto(menuItem.isApplyTax());
         response.setPrice(menuItem.getPrice());
         response.setImagePath(menuItem.getImagePath());
         response.setCreatedAt(menuItem.getCreatedAt());

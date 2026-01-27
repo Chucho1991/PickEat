@@ -17,6 +17,7 @@ public class MenuItemResponse {
     private DishType dishType;
     private boolean activo;
     private boolean deleted;
+    private boolean aplicaImpuesto;
     private BigDecimal price;
     private String imagePath;
     private Instant createdAt;
@@ -76,6 +77,14 @@ public class MenuItemResponse {
 
     public void setDeleted(boolean deleted) {
         this.deleted = deleted;
+    }
+
+    public boolean isAplicaImpuesto() {
+        return aplicaImpuesto;
+    }
+
+    public void setAplicaImpuesto(boolean aplicaImpuesto) {
+        this.aplicaImpuesto = aplicaImpuesto;
     }
 
     public BigDecimal getPrice() {

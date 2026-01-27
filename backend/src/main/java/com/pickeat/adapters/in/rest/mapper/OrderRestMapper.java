@@ -8,10 +8,12 @@ import com.pickeat.adapters.in.rest.dto.OrderResponse;
 import com.pickeat.domain.MenuItemId;
 import com.pickeat.domain.MesaId;
 import com.pickeat.domain.Order;
+import com.pickeat.domain.OrderChannelId;
 import com.pickeat.domain.OrderConfig;
 import com.pickeat.domain.OrderDraft;
 import com.pickeat.domain.OrderItem;
 import com.pickeat.domain.OrderItemDraft;
+import com.pickeat.domain.TipType;
 
 import java.util.List;
 
@@ -23,7 +25,23 @@ public class OrderRestMapper {
         List<OrderItemDraft> items = request.getItems().stream()
                 .map(this::toItemDraft)
                 .toList();
-        return new OrderDraft(new MesaId(request.getMesaId()), items);
+        TipType tipType = null;
+        if (request.getTipType() != null) {
+            try {
+                tipType = TipType.valueOf(request.getTipType());
+            } catch (IllegalArgumentException ignored) {
+                tipType = null;
+            }
+        }
+        OrderChannelId channelId = request.getChannelId() != null ? new OrderChannelId(request.getChannelId()) : null;
+        return new OrderDraft(
+                new MesaId(request.getMesaId()),
+                items,
+                channelId,
+                tipType,
+                request.getTipValue(),
+                request.getTipEnabled()
+        );
     }
 
     public OrderResponse toResponse(Order order) {
@@ -34,6 +52,7 @@ public class OrderRestMapper {
                 order.getId().getValue(),
                 order.getOrderNumber(),
                 order.getMesaId().getValue(),
+                order.getChannelId().getValue(),
                 items,
                 order.getSubtotal(),
                 order.getTaxAmount(),
@@ -42,6 +61,9 @@ public class OrderRestMapper {
                 order.getTotalAmount(),
                 order.getCurrencyCode(),
                 order.getCurrencySymbol(),
+                order.getStatus().name(),
+                order.isActive(),
+                order.isDeleted(),
                 order.getCreatedAt()
         );
     }

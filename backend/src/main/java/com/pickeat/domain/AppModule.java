@@ -11,7 +11,6 @@ public enum AppModule {
     PROFILE("profile", "Perfil"),
     MESAS("mesas", "Mesas"),
     MENU("menu", "Menu"),
-    DESCUENTOS("descuentos", "Descuentos"),
     ORDENES("ordenes", "Ordenes"),
     DESPACHADOR("despachador", "Despachador"),
     ROLE_MODULES("role-modules", "Accesos");

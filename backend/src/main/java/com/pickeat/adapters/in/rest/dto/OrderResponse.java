@@ -14,7 +14,6 @@ public class OrderResponse {
     private UUID mesaId;
     private UUID channelId;
     private List<OrderItemResponse> items;
-    private List<OrderDiscountItemResponse> discountItems;
     private BigDecimal subtotal;
     private BigDecimal taxAmount;
     private BigDecimal tipAmount;
@@ -32,7 +31,6 @@ public class OrderResponse {
                          UUID mesaId,
                          UUID channelId,
                          List<OrderItemResponse> items,
-                         List<OrderDiscountItemResponse> discountItems,
                          BigDecimal subtotal,
                          BigDecimal taxAmount,
                          BigDecimal tipAmount,
@@ -49,7 +47,6 @@ public class OrderResponse {
         this.mesaId = mesaId;
         this.channelId = channelId;
         this.items = items;
-        this.discountItems = discountItems;
         this.subtotal = subtotal;
         this.taxAmount = taxAmount;
         this.tipAmount = tipAmount;
@@ -81,10 +78,6 @@ public class OrderResponse {
 
     public List<OrderItemResponse> getItems() {
         return items;
-    }
-
-    public List<OrderDiscountItemResponse> getDiscountItems() {
-        return discountItems;
     }
 
     public BigDecimal getSubtotal() {

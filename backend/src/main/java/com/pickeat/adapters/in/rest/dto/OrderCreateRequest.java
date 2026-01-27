@@ -22,9 +22,6 @@ public class OrderCreateRequest {
     @Valid
     private List<OrderItemRequest> items;
 
-    @Valid
-    private List<OrderDiscountItemRequest> discountItems;
-
     private String tipType;
 
     @DecimalMin(value = "0.00", inclusive = true, message = "La propina debe ser mayor o igual a 0.")
@@ -54,14 +51,6 @@ public class OrderCreateRequest {
 
     public void setItems(List<OrderItemRequest> items) {
         this.items = items;
-    }
-
-    public List<OrderDiscountItemRequest> getDiscountItems() {
-        return discountItems;
-    }
-
-    public void setDiscountItems(List<OrderDiscountItemRequest> discountItems) {
-        this.discountItems = discountItems;
     }
 
     public String getTipType() {

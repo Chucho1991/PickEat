@@ -54,21 +54,12 @@ export interface OrderItemRequest {
 }
 
 /**
- * Descuento solicitado para una orden.
- */
-export interface OrderDiscountItemRequest {
-  discountItemId: string;
-  quantity: number;
-}
-
-/**
  * Solicitud de creacion de ordenes.
  */
 export interface OrderCreateRequest {
   mesaId: string;
   channelId?: string;
   items: OrderItemRequest[];
-  discountItems?: OrderDiscountItemRequest[];
   tipType?: 'PERCENTAGE' | 'FIXED';
   tipValue?: number;
   tipEnabled?: boolean;
@@ -87,13 +78,6 @@ export interface OrderResponse {
     quantity: number;
     unitPrice: number;
     totalPrice: number;
-  }>;
-  discountItems: Array<{
-    discountItemId: string;
-    quantity: number;
-    discountType: 'FIXED' | 'PERCENTAGE';
-    unitValue: number;
-    totalValue: number;
   }>;
   subtotal: number;
   taxAmount: number;

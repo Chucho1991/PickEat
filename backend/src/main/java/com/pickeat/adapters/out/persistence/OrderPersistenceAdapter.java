@@ -1,14 +1,11 @@
 package com.pickeat.adapters.out.persistence;
 
-import com.pickeat.adapters.out.persistence.entity.OrderDiscountItemJpaEntity;
 import com.pickeat.adapters.out.persistence.entity.OrderItemJpaEntity;
 import com.pickeat.adapters.out.persistence.entity.OrderJpaEntity;
 import com.pickeat.adapters.out.persistence.repository.OrderJpaRepository;
-import com.pickeat.domain.DiscountItemId;
 import com.pickeat.domain.MenuItemId;
 import com.pickeat.domain.MesaId;
 import com.pickeat.domain.Order;
-import com.pickeat.domain.OrderDiscountItem;
 import com.pickeat.domain.OrderId;
 import com.pickeat.domain.OrderItem;
 import com.pickeat.domain.OrderStatus;
@@ -72,11 +69,6 @@ public class OrderPersistenceAdapter implements OrderRepositoryPort {
                 .map(item -> toItemEntity(entity, item))
                 .toList();
         entity.setItems(new java.util.ArrayList<>(items));
-        List<OrderDiscountItem> orderDiscountItems = order.getDiscountItems() == null ? List.of() : order.getDiscountItems();
-        List<OrderDiscountItemJpaEntity> discountItems = orderDiscountItems.stream()
-                .map(item -> toDiscountEntity(entity, item))
-                .toList();
-        entity.setDiscountItems(new java.util.ArrayList<>(discountItems));
         return entity;
     }
 
@@ -91,18 +83,6 @@ public class OrderPersistenceAdapter implements OrderRepositoryPort {
         return entity;
     }
 
-    private OrderDiscountItemJpaEntity toDiscountEntity(OrderJpaEntity orderEntity, OrderDiscountItem item) {
-        OrderDiscountItemJpaEntity entity = new OrderDiscountItemJpaEntity();
-        entity.setId(UUID.randomUUID());
-        entity.setOrder(orderEntity);
-        entity.setDiscountItemId(item.getDiscountItemId().getValue());
-        entity.setQuantity(item.getQuantity());
-        entity.setDiscountType(item.getDiscountType());
-        entity.setUnitValue(item.getUnitValue());
-        entity.setTotalValue(item.getTotalValue());
-        return entity;
-    }
-
     private Order toDomain(OrderJpaEntity entity) {
         List<OrderItem> items = entity.getItems().stream()
                 .map(item -> new OrderItem(
@@ -112,22 +92,12 @@ public class OrderPersistenceAdapter implements OrderRepositoryPort {
                         item.getTotalPrice()
                 ))
                 .toList();
-        List<OrderDiscountItem> discountItems = entity.getDiscountItems().stream()
-                .map(item -> new OrderDiscountItem(
-                        new DiscountItemId(item.getDiscountItemId()),
-                        item.getQuantity(),
-                        item.getDiscountType(),
-                        item.getUnitValue(),
-                        item.getTotalValue()
-                ))
-                .toList();
         return new Order(
                 new OrderId(entity.getId()),
                 entity.getOrderNumber(),
                 new MesaId(entity.getMesaId()),
                 new com.pickeat.domain.OrderChannelId(entity.getChannelId()),
                 items,
-                discountItems,
                 entity.getSubtotal(),
                 entity.getTaxAmount(),
                 entity.getTipAmount(),

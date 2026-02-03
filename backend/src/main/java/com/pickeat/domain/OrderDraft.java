@@ -15,6 +15,7 @@ public class OrderDraft {
     private java.math.BigDecimal tipValue;
     private Boolean tipEnabled;
     private Map<String, String> billingData;
+    private String couponCode;
 
     public OrderDraft(MesaId mesaId,
                       List<OrderItemDraft> items,
@@ -23,7 +24,8 @@ public class OrderDraft {
                       TipType tipType,
                       java.math.BigDecimal tipValue,
                       Boolean tipEnabled,
-                      Map<String, String> billingData) {
+                      Map<String, String> billingData,
+                      String couponCode) {
         this.mesaId = mesaId;
         this.items = items;
         this.discountItems = discountItems;
@@ -32,6 +34,7 @@ public class OrderDraft {
         this.tipValue = tipValue;
         this.tipEnabled = tipEnabled;
         this.billingData = billingData;
+        this.couponCode = couponCode;
     }
 
     public MesaId getMesaId() {
@@ -96,5 +99,13 @@ public class OrderDraft {
 
     public void setBillingData(Map<String, String> billingData) {
         this.billingData = billingData;
+    }
+
+    public String getCouponCode() {
+        return couponCode;
+    }
+
+    public void setCouponCode(String couponCode) {
+        this.couponCode = couponCode;
     }
 }

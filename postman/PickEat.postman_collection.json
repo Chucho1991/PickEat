@@ -35,6 +35,10 @@
     {
       "key": "orderChannelId",
       "value": ""
+    },
+    {
+      "key": "couponCode",
+      "value": ""
     }
   ],
   "auth": {
@@ -238,7 +242,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\"mesaId\":\"{{mesaId}}\",\"channelId\":\"{{orderChannelId}}\",\"items\":[{\"menuItemId\":\"{{menuItemId}}\",\"quantity\":2}],\"tipType\":\"PERCENTAGE\",\"tipValue\":10,\"tipEnabled\":true}"
+              "raw": "{\"mesaId\":\"{{mesaId}}\",\"channelId\":\"{{orderChannelId}}\",\"items\":[{\"menuItemId\":\"{{menuItemId}}\",\"quantity\":2}],\"tipType\":\"PERCENTAGE\",\"tipValue\":10,\"tipEnabled\":true,\"couponCode\":\"{{couponCode}}\",\"billingData\":{\"Nombres\":\"\",\"Documento\":\"\",\"Correo\":\"\",\"Direccion\":\"\",\"Celular\":\"\"}}"
             }
           }
         },
@@ -264,7 +268,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\"mesaId\":\"{{mesaId}}\",\"channelId\":\"{{orderChannelId}}\",\"items\":[{\"menuItemId\":\"{{menuItemId}}\",\"quantity\":2}],\"tipType\":\"PERCENTAGE\",\"tipValue\":10,\"tipEnabled\":true}"
+              "raw": "{\"mesaId\":\"{{mesaId}}\",\"channelId\":\"{{orderChannelId}}\",\"items\":[{\"menuItemId\":\"{{menuItemId}}\",\"quantity\":2}],\"tipType\":\"PERCENTAGE\",\"tipValue\":10,\"tipEnabled\":true,\"couponCode\":\"{{couponCode}}\",\"billingData\":{\"Nombres\":\"\",\"Documento\":\"\",\"Correo\":\"\",\"Direccion\":\"\",\"Celular\":\"\"}}"
             }
           }
         },
@@ -280,6 +284,23 @@
               "path": [
                 "ordenes",
                 "{{orderId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /ordenes/{id}/cupones",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/ordenes/{{orderId}}/cupones",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "ordenes",
+                "{{orderId}}",
+                "cupones"
               ]
             }
           }

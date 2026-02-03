@@ -14,7 +14,12 @@ import com.pickeat.domain.OrderDiscountItem;
 import com.pickeat.domain.OrderItem;
 import com.pickeat.domain.OrderItemDraft;
 import com.pickeat.domain.TipType;
+import com.pickeat.domain.Coupon;
+import com.pickeat.domain.CouponStatus;
+import com.pickeat.domain.DiscountItem;
+import com.pickeat.domain.DiscountApplyScope;
 import com.pickeat.ports.in.UpdateOrderUseCase;
+import com.pickeat.ports.out.CouponRepositoryPort;
 import com.pickeat.ports.out.DiscountItemRepositoryPort;
 import com.pickeat.ports.out.MenuItemRepositoryPort;
 import com.pickeat.ports.out.MesaRepositoryPort;
@@ -43,19 +48,22 @@ public class UpdateOrderService implements UpdateOrderUseCase {
     private final DiscountItemRepositoryPort discountItemRepository;
     private final ParameterRepositoryPort parameterRepository;
     private final OrderChannelRepositoryPort orderChannelRepository;
+    private final CouponRepositoryPort couponRepository;
 
     public UpdateOrderService(OrderRepositoryPort orderRepository,
                               MesaRepositoryPort mesaRepository,
                               MenuItemRepositoryPort menuItemRepository,
                               DiscountItemRepositoryPort discountItemRepository,
                               ParameterRepositoryPort parameterRepository,
-                              OrderChannelRepositoryPort orderChannelRepository) {
+                              OrderChannelRepositoryPort orderChannelRepository,
+                              CouponRepositoryPort couponRepository) {
         this.orderRepository = orderRepository;
         this.mesaRepository = mesaRepository;
         this.menuItemRepository = menuItemRepository;
         this.discountItemRepository = discountItemRepository;
         this.parameterRepository = parameterRepository;
         this.orderChannelRepository = orderChannelRepository;
+        this.couponRepository = couponRepository;
     }
 
     /**
@@ -94,6 +102,8 @@ public class UpdateOrderService implements UpdateOrderUseCase {
         List<OrderItem> items = new ArrayList<>();
         BigDecimal subtotal = BigDecimal.ZERO;
         BigDecimal taxableSubtotal = BigDecimal.ZERO;
+        Map<java.util.UUID, BigDecimal> itemTotals = new HashMap<>();
+        Map<String, Integer> dishTypeCounts = new HashMap<>();
         for (Map.Entry<MenuItemId, Integer> entry : quantities.entrySet()) {
             int quantity = entry.getValue();
             if (quantity <= 0) {
@@ -112,6 +122,9 @@ public class UpdateOrderService implements UpdateOrderUseCase {
             if (menuItem.isApplyTax()) {
                 taxableSubtotal = taxableSubtotal.add(lineTotal);
             }
+            itemTotals.put(menuItem.getId().getValue(), lineTotal);
+            dishTypeCounts.put(menuItem.getDishType().name(),
+                    dishTypeCounts.getOrDefault(menuItem.getDishType().name(), 0) + quantity);
         }
         subtotal = subtotal.setScale(2, RoundingMode.HALF_UP);
         taxableSubtotal = taxableSubtotal.setScale(2, RoundingMode.HALF_UP);
@@ -142,7 +155,18 @@ public class UpdateOrderService implements UpdateOrderUseCase {
         }
         tipAmount = tipAmount.setScale(2, RoundingMode.HALF_UP);
 
-        List<OrderDiscountItem> discountItems = resolveDiscountItems(draft.getDiscountItems(), subtotal, taxAmount, tipAmount);
+        List<OrderDiscountDraft> discountDrafts = draft.getDiscountItems();
+        Coupon coupon = resolveCoupon(draft.getCouponCode(), existing.getId());
+        if (coupon != null) {
+            if (discountDrafts == null) {
+                discountDrafts = new ArrayList<>();
+            }
+            discountDrafts.add(new OrderDiscountDraft(coupon.getDiscountItemId(), 1));
+        }
+        if ((discountDrafts == null || discountDrafts.isEmpty()) && coupon == null) {
+            discountDrafts = autoApplyItemDiscounts(items, discountDrafts);
+        }
+        List<OrderDiscountItem> discountItems = resolveDiscountItems(discountDrafts, subtotal, taxAmount, tipAmount, itemTotals);
         BigDecimal baseTotal = subtotal.add(taxAmount).add(tipAmount);
         BigDecimal discountAmount = discountItems.stream()
                 .map(OrderDiscountItem::getTotalValue)
@@ -177,7 +201,12 @@ public class UpdateOrderService implements UpdateOrderUseCase {
         existing.setCurrencySymbol(config.getCurrencySymbol());
         existing.setBillingData(draft.getBillingData());
         existing.setUpdatedAt(Instant.now());
-        return orderRepository.save(existing);
+        Order saved = orderRepository.save(existing);
+        if (coupon != null && coupon.getStatus() != CouponStatus.REDEEMED) {
+            redeemCoupon(coupon, saved.getId());
+        }
+        generateCoupons(saved, dishTypeCounts);
+        return saved;
     }
 
     private Map<MenuItemId, Integer> mergeQuantities(List<OrderItemDraft> items) {
@@ -195,13 +224,15 @@ public class UpdateOrderService implements UpdateOrderUseCase {
     private List<OrderDiscountItem> resolveDiscountItems(List<OrderDiscountDraft> drafts,
                                                          BigDecimal subtotal,
                                                          BigDecimal taxAmount,
-                                                         BigDecimal tipAmount) {
+                                                         BigDecimal tipAmount,
+                                                         Map<java.util.UUID, BigDecimal> itemTotals) {
         if (drafts == null || drafts.isEmpty()) {
             return List.of();
         }
         Map<com.pickeat.domain.DiscountItemId, Integer> quantities = mergeDiscountQuantities(drafts);
         BigDecimal baseTotal = subtotal.add(taxAmount).add(tipAmount);
         List<OrderDiscountItem> result = new ArrayList<>();
+        boolean hasExclusive = false;
         for (Map.Entry<com.pickeat.domain.DiscountItemId, Integer> entry : quantities.entrySet()) {
             int quantity = entry.getValue();
             if (quantity <= 0) {
@@ -212,10 +243,31 @@ public class UpdateOrderService implements UpdateOrderUseCase {
             if (!discountItem.isActive() || discountItem.isDeleted()) {
                 throw new IllegalArgumentException("El descuento no esta disponible.");
             }
+            if (discountItem.isExclusive() && quantities.size() > 1) {
+                throw new IllegalArgumentException("Solo se permite un descuento exclusivo por orden.");
+            }
+            hasExclusive = hasExclusive || discountItem.isExclusive();
             BigDecimal unitValue = discountItem.getValue();
             BigDecimal lineTotal;
+            BigDecimal baseForDiscount = baseTotal;
+            if (discountItem.getApplyScope() == DiscountApplyScope.ITEM) {
+                BigDecimal itemsTotal = BigDecimal.ZERO;
+                for (java.util.UUID menuItemId : discountItem.getMenuItemIds()) {
+                    itemsTotal = itemsTotal.add(itemTotals.getOrDefault(menuItemId, BigDecimal.ZERO));
+                }
+                if (itemsTotal.compareTo(BigDecimal.ZERO) <= 0) {
+                    throw new IllegalArgumentException("El descuento no aplica a los items seleccionados.");
+                }
+                baseForDiscount = itemsTotal;
+            }
+            if (discountItem.isApplyOverDiscount()) {
+                BigDecimal currentDiscount = result.stream()
+                        .map(OrderDiscountItem::getTotalValue)
+                        .reduce(BigDecimal.ZERO, BigDecimal::add);
+                baseForDiscount = baseForDiscount.subtract(currentDiscount).max(BigDecimal.ZERO);
+            }
             if (discountItem.getDiscountType() == com.pickeat.domain.DiscountType.PERCENTAGE) {
-                lineTotal = baseTotal.multiply(unitValue.divide(ONE_HUNDRED, 4, RoundingMode.HALF_UP))
+                lineTotal = baseForDiscount.multiply(unitValue.divide(ONE_HUNDRED, 4, RoundingMode.HALF_UP))
                         .multiply(BigDecimal.valueOf(quantity));
             } else {
                 lineTotal = unitValue.multiply(BigDecimal.valueOf(quantity));
@@ -287,5 +339,98 @@ public class UpdateOrderService implements UpdateOrderUseCase {
             throw new IllegalArgumentException("El canal no esta disponible.");
         }
         return channel;
+    }
+
+    private Coupon resolveCoupon(String code, OrderId currentOrderId) {
+        if (code == null || code.isBlank()) {
+            return null;
+        }
+        Coupon coupon = couponRepository.findByCode(code.trim())
+                .orElseThrow(() -> new IllegalArgumentException("El cupon no existe."));
+        if (coupon.getStatus() == CouponStatus.REDEEMED) {
+            if (coupon.getRedeemedOrderId() != null && coupon.getRedeemedOrderId().equals(currentOrderId)) {
+                return coupon;
+            }
+            throw new IllegalArgumentException("El cupon ya fue utilizado.");
+        }
+        if (coupon.getStatus() != CouponStatus.ACTIVE) {
+            throw new IllegalArgumentException("El cupon no esta vigente.");
+        }
+        if (coupon.getExpiresAt().isBefore(Instant.now())) {
+            coupon.setStatus(CouponStatus.EXPIRED);
+            coupon.setUpdatedAt(Instant.now());
+            couponRepository.save(coupon);
+            throw new IllegalArgumentException("El cupon esta vencido.");
+        }
+        return coupon;
+    }
+
+    private void redeemCoupon(Coupon coupon, OrderId orderId) {
+        coupon.setStatus(CouponStatus.REDEEMED);
+        coupon.setRedeemedOrderId(orderId);
+        coupon.setRedeemedAt(Instant.now());
+        coupon.setUpdatedAt(Instant.now());
+        couponRepository.save(coupon);
+    }
+
+    private List<OrderDiscountDraft> autoApplyItemDiscounts(List<OrderItem> items, List<OrderDiscountDraft> drafts) {
+        List<DiscountItem> autoDiscounts = discountItemRepository.findAutoApplyItemDiscounts();
+        if (autoDiscounts.isEmpty()) {
+            return drafts;
+        }
+        List<OrderDiscountDraft> result = drafts == null ? new ArrayList<>() : new ArrayList<>(drafts);
+        for (DiscountItem discountItem : autoDiscounts) {
+            boolean matches = items.stream()
+                    .anyMatch(item -> discountItem.getMenuItemIds().contains(item.getMenuItemId().getValue()));
+            if (matches) {
+                result.add(new OrderDiscountDraft(discountItem.getId(), 1));
+            }
+        }
+        return result;
+    }
+
+    private void generateCoupons(Order order, Map<String, Integer> dishTypeCounts) {
+        List<DiscountItem> generators = discountItemRepository.findCouponGenerators();
+        if (generators.isEmpty()) {
+            return;
+        }
+        List<Coupon> existingCoupons = couponRepository.findByGeneratedOrderId(order.getId());
+        java.util.Set<com.pickeat.domain.DiscountItemId> existingDiscounts = existingCoupons.stream()
+                .map(Coupon::getDiscountItemId)
+                .collect(java.util.stream.Collectors.toSet());
+        BigDecimal baseTotal = order.getSubtotal().add(order.getTaxAmount());
+        boolean hasDiscounts = order.getDiscountAmount().compareTo(BigDecimal.ZERO) > 0 || !order.getDiscountItems().isEmpty();
+        for (DiscountItem discountItem : generators) {
+            if (!discountItem.isCouponActive()) {
+                continue;
+            }
+            if (existingDiscounts.contains(discountItem.getId())) {
+                continue;
+            }
+            if (discountItem.isCouponRequireNoDiscount() && hasDiscounts) {
+                continue;
+            }
+            String rule = discountItem.getCouponRuleType();
+            boolean qualifies = false;
+            if ("MIN_TOTAL".equalsIgnoreCase(rule)) {
+                BigDecimal min = discountItem.getCouponMinTotal() == null ? BigDecimal.ZERO : discountItem.getCouponMinTotal();
+                qualifies = baseTotal.compareTo(min) >= 0;
+            } else if ("MIN_ITEM_QTY_BY_DISH_TYPE".equalsIgnoreCase(rule)) {
+                String dishType = discountItem.getCouponDishType();
+                int minQty = discountItem.getCouponMinItemQty() == null ? 0 : discountItem.getCouponMinItemQty();
+                qualifies = dishType != null && dishTypeCounts.getOrDefault(dishType, 0) >= minQty;
+            }
+            if (!qualifies) {
+                continue;
+            }
+            int validityDays = discountItem.getCouponValidityDays() == null ? 7 : discountItem.getCouponValidityDays();
+            Instant expiresAt = Instant.now().plusSeconds(validityDays * 86400L);
+            Coupon coupon = Coupon.createNew(generateCouponCode(), discountItem.getId(), expiresAt, order.getId());
+            couponRepository.save(coupon);
+        }
+    }
+
+    private String generateCouponCode() {
+        return java.util.UUID.randomUUID().toString().replace("-", "").substring(0, 10).toUpperCase();
     }
 }

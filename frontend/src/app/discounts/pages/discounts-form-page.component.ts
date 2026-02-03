@@ -5,6 +5,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { AuthService } from '../../core/services/auth.service';
 import { DiscountsApiService, DiscountItemRequest } from '../../core/services/discounts-api.service';
+import { MenuApiService, MenuItemDto } from '../../core/services/menu-api.service';
 import { environment } from '../../../environments/environment';
 
 /**
@@ -55,6 +56,91 @@ import { environment } from '../../../environments/environment';
           <span class="error-text" *ngIf="form.get('value')?.hasError('min')">Debe ser mayor o igual a 0.</span>
         </label>
         <label class="field">
+          <span>Alcance del descuento</span>
+          <select formControlName="applyScope">
+            <option value="ORDER">Orden completa</option>
+            <option value="ITEM">Items especificos</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>Exclusivo (solo un descuento por orden)</span>
+          <select formControlName="exclusive">
+            <option [value]="false">No</option>
+            <option [value]="true">Si</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>Aplica sobre descuento previo</span>
+          <select formControlName="applyOverDiscount">
+            <option [value]="false">No</option>
+            <option [value]="true">Si</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>Auto aplicar si coincide</span>
+          <select formControlName="autoApply">
+            <option [value]="false">No</option>
+            <option [value]="true">Si</option>
+          </select>
+        </label>
+        <div class="field full-width" *ngIf="form.get('applyScope')?.value === 'ITEM'">
+          <span>Items aplicables</span>
+          <div class="grid grid-2">
+            <label class="checkbox" *ngFor="let item of menuItems">
+              <input type="checkbox" [checked]="form.get('menuItemIds')?.value?.includes(item.id)" (change)="toggleMenuItem(item.id)" />
+              <span>{{ item.nickname }}</span>
+            </label>
+          </div>
+        </div>
+        <div class="field full-width">
+          <span>Genera cupon post-orden</span>
+          <select formControlName="generatesCoupon">
+            <option [ngValue]="false">No</option>
+            <option [ngValue]="true">Si</option>
+          </select>
+        </div>
+        <ng-container *ngIf="generatesCouponEnabled">
+          <label class="field">
+            <span>Regla de cupon</span>
+            <select formControlName="couponRuleType">
+              <option value="MIN_TOTAL">Minimo de consumo</option>
+              <option value="MIN_ITEM_QTY_BY_DISH_TYPE">Cantidad por tipo de plato</option>
+            </select>
+          </label>
+          <label class="field" *ngIf="form.get('couponRuleType')?.value === 'MIN_TOTAL'">
+            <span>Minimo (subtotal + impuesto)</span>
+            <input type="number" step="0.01" min="0" formControlName="couponMinTotal" />
+          </label>
+          <label class="field" *ngIf="form.get('couponRuleType')?.value === 'MIN_ITEM_QTY_BY_DISH_TYPE'">
+            <span>Tipo de plato</span>
+            <select formControlName="couponDishType">
+              <option *ngFor="let type of dishTypes" [value]="type">{{ type }}</option>
+            </select>
+          </label>
+          <label class="field" *ngIf="form.get('couponRuleType')?.value === 'MIN_ITEM_QTY_BY_DISH_TYPE'">
+            <span>Cantidad minima</span>
+            <input type="number" min="1" formControlName="couponMinItemQty" />
+          </label>
+          <label class="field">
+            <span>Vigencia (dias)</span>
+            <input type="number" min="1" formControlName="couponValidityDays" />
+          </label>
+          <label class="field">
+            <span>Requiere orden sin otros descuentos</span>
+            <select formControlName="couponRequireNoDiscount">
+              <option [value]="true">Si</option>
+              <option [value]="false">No</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>Regla activa</span>
+            <select formControlName="couponActive">
+              <option [value]="false">No</option>
+              <option [value]="true">Si</option>
+            </select>
+          </label>
+        </ng-container>
+        <label class="field">
           <span>Activo</span>
           <select formControlName="activo" [class.invalid]="isInvalid('activo')" [disabled]="!isSuperadmin">
             <option *ngFor="let option of activeOptions" [value]="option.value">{{ option.label }}</option>
@@ -80,6 +166,7 @@ import { environment } from '../../../environments/environment';
 export class DiscountsFormPageComponent implements OnInit {
   private formBuilder = inject(FormBuilder);
   private discountsApi = inject(DiscountsApiService);
+  private menuApi = inject(MenuApiService);
   private snackBar = inject(MatSnackBar);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
@@ -96,6 +183,8 @@ export class DiscountsFormPageComponent implements OnInit {
   imageError = '';
   imagePreview: string | null = null;
   existingImagePath: string | null = null;
+  menuItems: MenuItemDto[] = [];
+  dishTypes = ['ENTRADA', 'FUERTE', 'BEBIDA', 'OTRO', 'POSTRE', 'COMBO'];
 
   form = this.formBuilder.group({
     longDescription: ['', Validators.required],
@@ -103,10 +192,28 @@ export class DiscountsFormPageComponent implements OnInit {
     nickname: ['', Validators.required],
     discountType: ['', Validators.required],
     value: [0, [Validators.required, Validators.min(0)]],
-    activo: [{ value: 'true', disabled: !this.isSuperadmin }, Validators.required]
+    activo: [{ value: 'true', disabled: !this.isSuperadmin }, Validators.required],
+    applyScope: ['ORDER', Validators.required],
+    exclusive: [false],
+    applyOverDiscount: [false],
+    autoApply: [false],
+    menuItemIds: [[] as string[]],
+    generatesCoupon: [false],
+    couponRuleType: ['MIN_TOTAL'],
+    couponMinTotal: [0],
+    couponDishType: ['FUERTE'],
+    couponMinItemQty: [1],
+    couponValidityDays: [7],
+    couponRequireNoDiscount: [true],
+    couponActive: [false]
   });
 
+  get generatesCouponEnabled() {
+    return this.form.get('generatesCoupon')?.value === true;
+  }
+
   ngOnInit() {
+    this.loadMenuItems();
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
       this.isEdit = true;
@@ -119,7 +226,20 @@ export class DiscountsFormPageComponent implements OnInit {
             nickname: item.nickname,
             discountType: item.discountType,
             value: item.value,
-            activo: item.activo ? 'true' : 'false'
+            activo: item.activo ? 'true' : 'false',
+            applyScope: item.applyScope ?? 'ORDER',
+            exclusive: item.exclusive ?? false,
+            applyOverDiscount: item.applyOverDiscount ?? false,
+            autoApply: item.autoApply ?? false,
+            menuItemIds: item.menuItemIds ?? [],
+            generatesCoupon: item.generatesCoupon ?? false,
+            couponRuleType: item.couponRuleType ?? 'MIN_TOTAL',
+            couponMinTotal: item.couponMinTotal ?? 0,
+            couponDishType: item.couponDishType ?? 'FUERTE',
+            couponMinItemQty: item.couponMinItemQty ?? 1,
+            couponValidityDays: item.couponValidityDays ?? 7,
+            couponRequireNoDiscount: item.couponRequireNoDiscount ?? true,
+            couponActive: item.couponActive ?? false
           });
           this.existingImagePath = item.imagePath ?? null;
         },
@@ -136,13 +256,27 @@ export class DiscountsFormPageComponent implements OnInit {
     }
     const value = this.form.getRawValue();
     const activeValue = value.activo === 'true';
+    const applyScope = value.applyScope === 'ITEM' ? 'ITEM' : 'ORDER';
     const payload: DiscountItemRequest = {
       longDescription: value.longDescription ?? '',
       shortDescription: value.shortDescription ?? '',
       nickname: value.nickname ?? '',
       discountType: value.discountType ?? '',
       value: Number(value.value ?? 0),
-      activo: activeValue
+      activo: activeValue,
+      applyScope,
+      exclusive: Boolean(value.exclusive),
+      applyOverDiscount: Boolean(value.applyOverDiscount),
+      autoApply: Boolean(value.autoApply),
+      menuItemIds: (value.menuItemIds ?? []) as string[],
+      generatesCoupon: Boolean(value.generatesCoupon),
+      couponRuleType: value.couponRuleType ?? null,
+      couponMinTotal: Number(value.couponMinTotal ?? 0),
+      couponDishType: value.couponDishType ?? null,
+      couponMinItemQty: Number(value.couponMinItemQty ?? 0),
+      couponValidityDays: Number(value.couponValidityDays ?? 7),
+      couponRequireNoDiscount: Boolean(value.couponRequireNoDiscount),
+      couponActive: Boolean(value.couponActive)
     };
 
     const request$ = this.isEdit && this.discountId ? this.discountsApi.update(this.discountId, payload) : this.discountsApi.create(payload);
@@ -216,5 +350,24 @@ export class DiscountsFormPageComponent implements OnInit {
       return '';
     }
     return `${environment.apiUrl}${path}`;
+  }
+
+  private loadMenuItems() {
+    this.menuApi.list({ includeDeleted: false }).subscribe({
+      next: (items) => (this.menuItems = items.filter((item) => item.activo && !item.deleted)),
+      error: () => this.snackBar.open('No se pudo cargar menu', 'Cerrar', { duration: 3000 })
+    });
+  }
+
+  toggleMenuItem(id: string) {
+    const control = this.form.get('menuItemIds');
+    const current = new Set((control?.value as string[]) ?? []);
+    if (current.has(id)) {
+      current.delete(id);
+    } else {
+      current.add(id);
+    }
+    control?.setValue(Array.from(current));
+    control?.markAsDirty();
   }
 }

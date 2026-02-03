@@ -232,6 +232,10 @@ interface DiscountLine {
               </label>
             </ng-template>
           </ng-container>
+          <label class="field">
+            <span>Cupon (codigo)</span>
+            <input type="text" placeholder="Ingresa el codigo" [(ngModel)]="couponCode" />
+          </label>
         </div>
 
         <div class="order-items">
@@ -367,6 +371,7 @@ export class OrdersPageComponent implements OnInit {
   selectedChannelId = '';
   channels: OrderChannelDto[] = [];
   billingFields: OrderBillingFieldDto[] = [];
+  couponCode = '';
   selectedDishType = '';
   searchTerm = '';
   discountSearchTerm = '';
@@ -547,7 +552,8 @@ export class OrdersPageComponent implements OnInit {
         : undefined,
       tipType: this.tipType === 'NONE' ? undefined : this.tipType,
       tipValue: this.tipType === 'FIXED' ? Number(this.fixedTipAmount || 0) : undefined,
-      tipEnabled: this.tipType !== 'NONE'
+      tipEnabled: this.tipType !== 'NONE',
+      couponCode: this.couponCode || undefined
     };
     if (this.isEditMode && this.editingOrderId) {
       this.ordersApi.update(this.editingOrderId, request).subscribe({
@@ -927,6 +933,7 @@ export class OrdersPageComponent implements OnInit {
     this.fixedTipAmount = 0;
     this.hasSyncedOrderItems = false;
     this.hasSyncedDiscountItems = false;
+    this.couponCode = '';
   }
 
   private calculateDiscountLineTotal(item: DiscountItemDto, quantity: number) {
@@ -1048,30 +1055,62 @@ export class OrdersPageComponent implements OnInit {
       .sort((a, b) => a.sortOrder - b.sortOrder)
       .map((field) => field.label);
 
-    this.voucherService.generateVoucher({
-      date: new Date(),
-      orderNumber: this.orderNumberDisplay,
-      mesa: this.selectedMesaLabel || order.mesaId,
-      mesero,
-      canal: this.selectedChannelLabel || order.channelId,
-      currencySymbol: order.currencySymbol,
-      items: this.orderItems.map((line) => ({
-        name: line.menuItem.nickname,
-        unitPrice: line.unitPrice,
-        quantity: line.quantity,
-        total: line.total
-      })),
-      discountsApplied: this.orderDiscountItems.map((line) => ({
-        name: line.discountItem.nickname,
-        type: line.discountItem.discountType === 'PERCENTAGE' ? 'Porcentaje' : 'Fijo',
-        unitValue: this.formatDiscountLineUnit(line),
-        total: line.total
-      })),
-      subtotal: order.subtotal,
-      discountAmount: order.discountAmount,
-      tipAmount: order.tipAmount,
-      totalAmount: order.totalAmount,
-      billingFields
+    this.ordersApi.listOrderCoupons(order.id).subscribe({
+      next: (coupons) => {
+        this.voucherService.generateVoucher({
+          date: new Date(),
+          orderNumber: this.orderNumberDisplay,
+          mesa: this.selectedMesaLabel || order.mesaId,
+          mesero,
+          canal: this.selectedChannelLabel || order.channelId,
+          currencySymbol: order.currencySymbol,
+          items: this.orderItems.map((line) => ({
+            name: line.menuItem.nickname,
+            unitPrice: line.unitPrice,
+            quantity: line.quantity,
+            total: line.total
+          })),
+          discountsApplied: this.orderDiscountItems.map((line) => ({
+            name: line.discountItem.nickname,
+            type: line.discountItem.discountType === 'PERCENTAGE' ? 'Porcentaje' : 'Fijo',
+            unitValue: this.formatDiscountLineUnit(line),
+            total: line.total
+          })),
+          coupons,
+          subtotal: order.subtotal,
+          discountAmount: order.discountAmount,
+          tipAmount: order.tipAmount,
+          totalAmount: order.totalAmount,
+          billingFields
+        });
+      },
+      error: () => {
+        this.voucherService.generateVoucher({
+          date: new Date(),
+          orderNumber: this.orderNumberDisplay,
+          mesa: this.selectedMesaLabel || order.mesaId,
+          mesero,
+          canal: this.selectedChannelLabel || order.channelId,
+          currencySymbol: order.currencySymbol,
+          items: this.orderItems.map((line) => ({
+            name: line.menuItem.nickname,
+            unitPrice: line.unitPrice,
+            quantity: line.quantity,
+            total: line.total
+          })),
+          discountsApplied: this.orderDiscountItems.map((line) => ({
+            name: line.discountItem.nickname,
+            type: line.discountItem.discountType === 'PERCENTAGE' ? 'Porcentaje' : 'Fijo',
+            unitValue: this.formatDiscountLineUnit(line),
+            total: line.total
+          })),
+          subtotal: order.subtotal,
+          discountAmount: order.discountAmount,
+          tipAmount: order.tipAmount,
+          totalAmount: order.totalAmount,
+          billingFields
+        });
+      }
     });
   }
 }

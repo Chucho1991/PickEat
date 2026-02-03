@@ -13,6 +13,19 @@ export interface DiscountItemDto {
   nickname: string;
   discountType: 'FIXED' | 'PERCENTAGE';
   value: number;
+  applyScope?: 'ORDER' | 'ITEM';
+  exclusive?: boolean;
+  applyOverDiscount?: boolean;
+  autoApply?: boolean;
+  menuItemIds?: string[];
+  generatesCoupon?: boolean;
+  couponRuleType?: string | null;
+  couponMinTotal?: number | null;
+  couponDishType?: string | null;
+  couponMinItemQty?: number | null;
+  couponValidityDays?: number | null;
+  couponRequireNoDiscount?: boolean;
+  couponActive?: boolean;
   activo: boolean;
   deleted: boolean;
   imagePath?: string | null;
@@ -30,6 +43,19 @@ export interface DiscountItemRequest {
   discountType: 'FIXED' | 'PERCENTAGE' | string;
   value: number;
   activo: boolean;
+  applyScope?: 'ORDER' | 'ITEM';
+  exclusive?: boolean;
+  applyOverDiscount?: boolean;
+  autoApply?: boolean;
+  menuItemIds?: string[];
+  generatesCoupon?: boolean;
+  couponRuleType?: string | null;
+  couponMinTotal?: number | null;
+  couponDishType?: string | null;
+  couponMinItemQty?: number | null;
+  couponValidityDays?: number | null;
+  couponRequireNoDiscount?: boolean;
+  couponActive?: boolean;
 }
 
 /**

@@ -31,4 +31,18 @@ public interface DiscountItemJpaRepository extends JpaRepository<DiscountItemJpa
     List<DiscountItemJpaEntity> findAllFiltered(@Param("activo") Boolean activo,
                                                 @Param("search") String search,
                                                 @Param("includeDeleted") boolean includeDeleted);
+
+    @Query("""
+        SELECT d
+        FROM DiscountItemJpaEntity d
+        WHERE d.generatesCoupon = true AND d.couponActive = true AND d.deleted = false AND d.active = true
+        """)
+    List<DiscountItemJpaEntity> findCouponGenerators();
+
+    @Query("""
+        SELECT d
+        FROM DiscountItemJpaEntity d
+        WHERE d.applyScope = 'ITEM' AND d.autoApply = true AND d.deleted = false AND d.active = true
+        """)
+    List<DiscountItemJpaEntity> findAutoApplyItemDiscounts();
 }

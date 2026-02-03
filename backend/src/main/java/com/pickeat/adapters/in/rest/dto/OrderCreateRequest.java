@@ -33,6 +33,7 @@ public class OrderCreateRequest {
 
     private Boolean tipEnabled;
     private Map<String, String> billingData;
+    private String couponCode;
 
     public UUID getMesaId() {
         return mesaId;
@@ -96,5 +97,13 @@ public class OrderCreateRequest {
 
     public void setBillingData(Map<String, String> billingData) {
         this.billingData = billingData;
+    }
+
+    public String getCouponCode() {
+        return couponCode;
+    }
+
+    public void setCouponCode(String couponCode) {
+        this.couponCode = couponCode;
     }
 }

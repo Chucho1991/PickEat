@@ -25,6 +25,7 @@ export interface VoucherData {
   currencySymbol: string;
   items: VoucherLineItem[];
   discountsApplied: VoucherDiscountLine[];
+  coupons?: Array<{ code: string; status: string; expiresAt: string; relation: string }>;
   subtotal: number;
   discountAmount: number;
   tipAmount: number;
@@ -131,6 +132,28 @@ export class OrderVoucherService {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const discountTable = (doc as any).lastAutoTable;
       y = (discountTable?.finalY ?? y) + 14;
+    }
+
+    if (data.coupons && data.coupons.length > 0) {
+      doc.setFontSize(10);
+      doc.text('Cupones generados', marginX, y);
+      y += 8;
+      autoTable(doc, {
+        startY: y + 6,
+        head: [['Codigo', 'Estado', 'Vence', 'Relacion']],
+        body: data.coupons.map((coupon) => [
+          coupon.code,
+          coupon.status,
+          this.formatDate(new Date(coupon.expiresAt)),
+          coupon.relation === 'APPLIED' ? 'Aplicado' : 'Generado'
+        ]),
+        styles: { fontSize: 9 },
+        headStyles: { fillColor: [241, 245, 249], textColor: 20 },
+        margin: { left: marginX, right: marginX }
+      });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const couponTable = (doc as any).lastAutoTable;
+      y = (couponTable?.finalY ?? y) + 14;
     }
 
     doc.setFontSize(10);

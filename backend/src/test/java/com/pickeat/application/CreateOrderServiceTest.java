@@ -38,13 +38,15 @@ class CreateOrderServiceTest {
         DiscountItemRepositoryPort discountItemRepository = Mockito.mock(DiscountItemRepositoryPort.class);
         ParameterRepositoryPort parameterRepository = Mockito.mock(ParameterRepositoryPort.class);
         OrderChannelRepositoryPort orderChannelRepository = Mockito.mock(OrderChannelRepositoryPort.class);
+        com.pickeat.ports.out.CouponRepositoryPort couponRepository = Mockito.mock(com.pickeat.ports.out.CouponRepositoryPort.class);
         CreateOrderService service = new CreateOrderService(
                 orderRepository,
                 mesaRepository,
                 menuItemRepository,
                 discountItemRepository,
                 parameterRepository,
-                orderChannelRepository
+                orderChannelRepository,
+                couponRepository
         );
 
         Mesa mesa = new Mesa(new MesaId(UUID.randomUUID()), "Mesa 1", 4, true, false, false);
@@ -65,7 +67,8 @@ class CreateOrderServiceTest {
                 null,
                 null,
                 true,
-                java.util.Map.of()
+                java.util.Map.of(),
+                null
         );
         OrderChannel channel = new OrderChannel(
                 new OrderChannelId(UUID.randomUUID()),

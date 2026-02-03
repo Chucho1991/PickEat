@@ -51,9 +51,10 @@ docker compose up --build
 
 ## Endpoints principales (Ordenes)
 - `GET /ordenes`
-- `POST /ordenes` (incluye `channelId`, `tipType`, `tipValue`, `tipEnabled`)
-- `PUT /ordenes/{id}`
+- `POST /ordenes` (incluye `channelId`, `tipType`, `tipValue`, `tipEnabled`, `billingData`, `couponCode`)
+- `PUT /ordenes/{id}` (incluye `billingData`, `couponCode`)
 - `GET /ordenes/{id}`
+- `GET /ordenes/{id}/cupones`
 - `DELETE /ordenes/{id}` (eliminacion logica)
 - `POST /ordenes/{id}/restore`
 - `POST /ordenes/{id}/active` (solo SUPERADMINISTRADOR)

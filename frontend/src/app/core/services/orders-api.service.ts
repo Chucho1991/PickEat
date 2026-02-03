@@ -84,6 +84,18 @@ export interface OrderBillingFieldRequest {
 }
 
 /**
+ * Cupon asociado a una orden.
+ */
+export interface OrderCouponDto {
+  id: string;
+  code: string;
+  discountItemId: string;
+  status: string;
+  expiresAt: string;
+  relation: 'GENERATED' | 'APPLIED';
+}
+
+/**
  * Solicitud de creacion de ordenes.
  */
 export interface OrderCreateRequest {
@@ -95,6 +107,7 @@ export interface OrderCreateRequest {
   tipValue?: number;
   tipEnabled?: boolean;
   billingData?: Record<string, string>;
+  couponCode?: string;
 }
 
 /**
@@ -287,5 +300,12 @@ export class OrdersApiService {
    */
   restoreChannel(id: string): Observable<OrderChannelDto> {
     return this.http.post<OrderChannelDto>(`${this.baseUrl}/canales/${id}/restore`, {});
+  }
+
+  /**
+   * Lista cupones asociados a una orden.
+   */
+  listOrderCoupons(orderId: string): Observable<OrderCouponDto[]> {
+    return this.http.get<OrderCouponDto[]>(`${this.baseUrl}/${orderId}/cupones`);
   }
 }

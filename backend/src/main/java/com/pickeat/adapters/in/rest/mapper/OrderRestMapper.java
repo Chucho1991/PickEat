@@ -53,7 +53,8 @@ public class OrderRestMapper {
                 tipType,
                 request.getTipValue(),
                 request.getTipEnabled(),
-                request.getBillingData()
+                request.getBillingData(),
+                request.getCouponCode()
         );
     }
 

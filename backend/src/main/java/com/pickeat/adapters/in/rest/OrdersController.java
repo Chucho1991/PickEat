@@ -1,5 +1,6 @@
 package com.pickeat.adapters.in.rest;
 
+import com.pickeat.adapters.in.rest.dto.CouponResponse;
 import com.pickeat.adapters.in.rest.dto.OrderActiveRequest;
 import com.pickeat.adapters.in.rest.dto.OrderConfigRequest;
 import com.pickeat.adapters.in.rest.dto.OrderConfigResponse;
@@ -18,6 +19,7 @@ import com.pickeat.ports.in.CreateOrderUseCase;
 import com.pickeat.ports.in.DeleteOrderUseCase;
 import com.pickeat.ports.in.GetOrderConfigUseCase;
 import com.pickeat.ports.in.GetOrderUseCase;
+import com.pickeat.ports.in.ListOrderCouponsUseCase;
 import com.pickeat.ports.in.RestoreOrderUseCase;
 import com.pickeat.ports.in.UpdateOrderUseCase;
 import com.pickeat.ports.in.UpdateOrderConfigUseCase;
@@ -52,6 +54,7 @@ public class OrdersController {
     private final RestoreOrderUseCase restoreOrderUseCase;
     private final ChangeOrderActiveUseCase changeOrderActiveUseCase;
     private final ChangeOrderStatusUseCase changeOrderStatusUseCase;
+    private final ListOrderCouponsUseCase listOrderCouponsUseCase;
     private final OrderRestMapper mapper = new OrderRestMapper();
 
     public OrdersController(CreateOrderUseCase createOrderUseCase,
@@ -62,7 +65,8 @@ public class OrdersController {
                             DeleteOrderUseCase deleteOrderUseCase,
                             RestoreOrderUseCase restoreOrderUseCase,
                             ChangeOrderActiveUseCase changeOrderActiveUseCase,
-                            ChangeOrderStatusUseCase changeOrderStatusUseCase) {
+                            ChangeOrderStatusUseCase changeOrderStatusUseCase,
+                            ListOrderCouponsUseCase listOrderCouponsUseCase) {
         this.createOrderUseCase = createOrderUseCase;
         this.updateOrderUseCase = updateOrderUseCase;
         this.getOrderUseCase = getOrderUseCase;
@@ -72,6 +76,7 @@ public class OrdersController {
         this.restoreOrderUseCase = restoreOrderUseCase;
         this.changeOrderActiveUseCase = changeOrderActiveUseCase;
         this.changeOrderStatusUseCase = changeOrderStatusUseCase;
+        this.listOrderCouponsUseCase = listOrderCouponsUseCase;
     }
 
     /**
@@ -122,6 +127,33 @@ public class OrdersController {
     @GetMapping("/{id}")
     public ResponseEntity<OrderResponse> getById(@PathVariable("id") UUID id) {
         return ResponseEntity.ok(mapper.toResponse(getOrderUseCase.getById(new OrderId(id))));
+    }
+
+    /**
+     * Lista cupones asociados a una orden.
+     *
+     * @param id identificador de la orden.
+     * @return listado de cupones.
+     */
+    @GetMapping("/{id}/cupones")
+    public ResponseEntity<List<CouponResponse>> listCoupons(@PathVariable("id") UUID id) {
+        OrderId orderId = new OrderId(id);
+        List<CouponResponse> coupons = listOrderCouponsUseCase.listByOrder(orderId).stream()
+                .map(coupon -> {
+                    String relation = coupon.getGeneratedOrderId() != null && coupon.getGeneratedOrderId().equals(orderId)
+                            ? "GENERATED"
+                            : "APPLIED";
+                    return new CouponResponse(
+                            coupon.getId(),
+                            coupon.getCode(),
+                            coupon.getDiscountItemId().getValue(),
+                            coupon.getStatus().name(),
+                            coupon.getExpiresAt(),
+                            relation
+                    );
+                })
+                .toList();
+        return ResponseEntity.ok(coupons);
     }
 
     /**

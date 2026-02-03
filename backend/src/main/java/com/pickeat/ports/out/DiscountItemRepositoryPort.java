@@ -17,4 +17,18 @@ public interface DiscountItemRepositoryPort {
     Optional<DiscountItem> findByNickname(String nickname);
 
     List<DiscountItem> findAll(Boolean activo, String search, boolean includeDeleted);
+
+    /**
+     * Lista descuentos configurados para generar cupones.
+     *
+     * @return descuentos generadores.
+     */
+    List<DiscountItem> findCouponGenerators();
+
+    /**
+     * Lista descuentos que aplican automaticamente a items.
+     *
+     * @return descuentos auto-aplicables.
+     */
+    List<DiscountItem> findAutoApplyItemDiscounts();
 }

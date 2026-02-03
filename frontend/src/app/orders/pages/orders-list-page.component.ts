@@ -362,30 +362,62 @@ export class OrdersListPageComponent implements OnInit {
       .sort((a, b) => a.sortOrder - b.sortOrder)
       .map((field) => field.label);
 
-    this.voucherService.generateVoucher({
-      date: new Date(),
-      orderNumber: this.orderNumberDisplay(order.orderNumber),
-      mesa: this.mesaLabel(order.mesaId),
-      mesero,
-      canal: this.channelLabel(order.channelId),
-      currencySymbol: order.currencySymbol,
-      items: (order.items ?? []).map((line) => ({
-        name: this.menuLabel(line.menuItemId),
-        unitPrice: Number(line.unitPrice),
-        quantity: line.quantity,
-        total: Number(line.totalPrice)
-      })),
-      discountsApplied: (order.discountItems ?? []).map((line) => ({
-        name: this.discountLabel(line.discountItemId),
-        type: line.discountType === 'PERCENTAGE' ? 'Porcentaje' : 'Fijo',
-        unitValue: line.discountType === 'PERCENTAGE' ? `${line.unitValue}%` : this.formatMoney(line.unitValue, order.currencySymbol),
-        total: Number(line.totalValue)
-      })),
-      subtotal: order.subtotal,
-      discountAmount: order.discountAmount,
-      tipAmount: order.tipAmount,
-      totalAmount: order.totalAmount,
-      billingFields
+    this.ordersApi.listOrderCoupons(order.id).subscribe({
+      next: (coupons) => {
+        this.voucherService.generateVoucher({
+          date: new Date(),
+          orderNumber: this.orderNumberDisplay(order.orderNumber),
+          mesa: this.mesaLabel(order.mesaId),
+          mesero,
+          canal: this.channelLabel(order.channelId),
+          currencySymbol: order.currencySymbol,
+          items: (order.items ?? []).map((line) => ({
+            name: this.menuLabel(line.menuItemId),
+            unitPrice: Number(line.unitPrice),
+            quantity: line.quantity,
+            total: Number(line.totalPrice)
+          })),
+          discountsApplied: (order.discountItems ?? []).map((line) => ({
+            name: this.discountLabel(line.discountItemId),
+            type: line.discountType === 'PERCENTAGE' ? 'Porcentaje' : 'Fijo',
+            unitValue: line.discountType === 'PERCENTAGE' ? `${line.unitValue}%` : this.formatMoney(line.unitValue, order.currencySymbol),
+            total: Number(line.totalValue)
+          })),
+          coupons,
+          subtotal: order.subtotal,
+          discountAmount: order.discountAmount,
+          tipAmount: order.tipAmount,
+          totalAmount: order.totalAmount,
+          billingFields
+        });
+      },
+      error: () => {
+        this.voucherService.generateVoucher({
+          date: new Date(),
+          orderNumber: this.orderNumberDisplay(order.orderNumber),
+          mesa: this.mesaLabel(order.mesaId),
+          mesero,
+          canal: this.channelLabel(order.channelId),
+          currencySymbol: order.currencySymbol,
+          items: (order.items ?? []).map((line) => ({
+            name: this.menuLabel(line.menuItemId),
+            unitPrice: Number(line.unitPrice),
+            quantity: line.quantity,
+            total: Number(line.totalPrice)
+          })),
+          discountsApplied: (order.discountItems ?? []).map((line) => ({
+            name: this.discountLabel(line.discountItemId),
+            type: line.discountType === 'PERCENTAGE' ? 'Porcentaje' : 'Fijo',
+            unitValue: line.discountType === 'PERCENTAGE' ? `${line.unitValue}%` : this.formatMoney(line.unitValue, order.currencySymbol),
+            total: Number(line.totalValue)
+          })),
+          subtotal: order.subtotal,
+          discountAmount: order.discountAmount,
+          tipAmount: order.tipAmount,
+          totalAmount: order.totalAmount,
+          billingFields
+        });
+      }
     });
   }
 

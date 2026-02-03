@@ -2,9 +2,12 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { Router } from '@angular/router';
-import { OrderChannelDto, OrderResponse, OrdersApiService, OrderStatus } from '../../core/services/orders-api.service';
+import { OrderBillingFieldDto, OrderChannelDto, OrderResponse, OrdersApiService, OrderStatus } from '../../core/services/orders-api.service';
 import { AuthService } from '../../core/services/auth.service';
 import { MesasApiService, MesaDto } from '../../core/services/mesas-api.service';
+import { MenuApiService, MenuItemDto } from '../../core/services/menu-api.service';
+import { DiscountsApiService, DiscountItemDto } from '../../core/services/discounts-api.service';
+import { OrderVoucherService } from '../../core/services/order-voucher.service';
 
 /**
  * Pagina con el listado de ordenes.
@@ -49,6 +52,19 @@ import { MesasApiService, MesaDto } from '../../core/services/mesas-api.service'
                 </td>
                 <td>{{ order.createdAt | date: 'short' }}</td>
                 <td class="text-right">
+                  <button
+                    class="btn btn-ghost btn-sm icon-btn"
+                    type="button"
+                    (click)="regenerateVoucher(order)"
+                    title="Regenerar voucher"
+                    aria-label="Regenerar voucher"
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                      <path d="M4 12C4 7.58172 7.58172 4 12 4C13.9576 4 15.7416 4.70456 17.1189 5.875M20 12C20 16.4183 16.4183 20 12 20C10.0424 20 8.2584 19.2954 6.88111 18.125" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                      <path d="M7 6V10H3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                      <path d="M17 14V18H21" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                    </svg>
+                  </button>
                   <button
                     class="btn btn-ghost btn-sm icon-btn"
                     type="button"
@@ -122,6 +138,10 @@ import { MesasApiService, MesaDto } from '../../core/services/mesas-api.service'
                       <p class="detail-label">Descuento</p>
                       <p class="detail-value">{{ formatMoney(order.discountAmount, order.currencySymbol) }}</p>
                     </div>
+                    <div>
+                      <p class="detail-label">Descuentos posteriores</p>
+                      <p class="detail-value">Pendiente de implementacion.</p>
+                    </div>
                   </div>
                   <div class="order-status-actions" *ngIf="canManageStatus && !order.deleted">
                     <p class="detail-label">Cambiar estado</p>
@@ -178,12 +198,18 @@ import { MesasApiService, MesaDto } from '../../core/services/mesas-api.service'
 export class OrdersListPageComponent implements OnInit {
   private ordersApi = inject(OrdersApiService);
   private mesasApi = inject(MesasApiService);
+  private menuApi = inject(MenuApiService);
+  private discountsApi = inject(DiscountsApiService);
   private snackBar = inject(MatSnackBar);
   private router = inject(Router);
   private authService = inject(AuthService);
+  private voucherService = inject(OrderVoucherService);
   orders: OrderResponse[] = [];
   channels: OrderChannelDto[] = [];
   mesas: MesaDto[] = [];
+  menuItems: MenuItemDto[] = [];
+  discountItems: DiscountItemDto[] = [];
+  billingFields: OrderBillingFieldDto[] = [];
   expandedOrderId: string | null = null;
   isSuperadmin = this.authService.hasRole(['SUPERADMINISTRADOR']);
   canManageStatus = this.authService.hasRole(['SUPERADMINISTRADOR', 'ADMINISTRADOR']);
@@ -195,6 +221,9 @@ export class OrdersListPageComponent implements OnInit {
     this.loadOrders();
     this.loadMesas();
     this.loadChannels();
+    this.loadMenuItems();
+    this.loadDiscountItems();
+    this.loadBillingFields();
   }
 
   /**
@@ -322,6 +351,45 @@ export class OrdersListPageComponent implements OnInit {
   }
 
   /**
+   * Regenera el voucher PDF desde el listado.
+   *
+   * @param order orden objetivo.
+   */
+  regenerateVoucher(order: OrderResponse) {
+    const mesero = this.authService.getUser()?.nombres ?? 'Mesero';
+    const billingFields = this.billingFields
+      .filter((field) => field.active && !field.deleted)
+      .sort((a, b) => a.sortOrder - b.sortOrder)
+      .map((field) => field.label);
+
+    this.voucherService.generateVoucher({
+      date: new Date(),
+      orderNumber: this.orderNumberDisplay(order.orderNumber),
+      mesa: this.mesaLabel(order.mesaId),
+      mesero,
+      canal: this.channelLabel(order.channelId),
+      currencySymbol: order.currencySymbol,
+      items: (order.items ?? []).map((line) => ({
+        name: this.menuLabel(line.menuItemId),
+        unitPrice: Number(line.unitPrice),
+        quantity: line.quantity,
+        total: Number(line.totalPrice)
+      })),
+      discountsApplied: (order.discountItems ?? []).map((line) => ({
+        name: this.discountLabel(line.discountItemId),
+        type: line.discountType === 'PERCENTAGE' ? 'Porcentaje' : 'Fijo',
+        unitValue: line.discountType === 'PERCENTAGE' ? `${line.unitValue}%` : this.formatMoney(line.unitValue, order.currencySymbol),
+        total: Number(line.totalValue)
+      })),
+      subtotal: order.subtotal,
+      discountAmount: order.discountAmount,
+      tipAmount: order.tipAmount,
+      totalAmount: order.totalAmount,
+      billingFields
+    });
+  }
+
+  /**
    * Convierte el estado a etiqueta.
    *
    * @param status estado base.
@@ -391,5 +459,53 @@ export class OrdersListPageComponent implements OnInit {
       next: (channels) => (this.channels = channels),
       error: () => this.snackBar.open('No se pudo cargar canales', 'Cerrar', { duration: 3000 })
     });
+  }
+
+  /**
+   * Carga el catalogo de menu para etiquetas.
+   */
+  private loadMenuItems() {
+    this.menuApi.list({ includeDeleted: true }).subscribe({
+      next: (items) => (this.menuItems = items),
+      error: () => this.snackBar.open('No se pudo cargar menu', 'Cerrar', { duration: 3000 })
+    });
+  }
+
+  /**
+   * Carga el catalogo de descuentos para etiquetas.
+   */
+  private loadDiscountItems() {
+    this.discountsApi.list({ includeDeleted: true }).subscribe({
+      next: (items) => (this.discountItems = items),
+      error: () => this.snackBar.open('No se pudo cargar descuentos', 'Cerrar', { duration: 3000 })
+    });
+  }
+
+  /**
+   * Carga los campos configurados de facturacion.
+   */
+  private loadBillingFields() {
+    this.ordersApi.listBillingFields(false).subscribe({
+      next: (fields) => (this.billingFields = fields),
+      error: () => this.snackBar.open('No se pudo cargar campos de facturacion', 'Cerrar', { duration: 3000 })
+    });
+  }
+
+  /**
+   * Resuelve la etiqueta del menu.
+   *
+   * @param menuItemId id del item.
+   */
+  private menuLabel(menuItemId: string) {
+    return this.menuItems.find((item) => item.id === menuItemId)?.nickname ?? 'Item eliminado';
+  }
+
+  /**
+   * Resuelve la etiqueta del descuento.
+   *
+   * @param discountItemId id del descuento.
+   */
+  private discountLabel(discountItemId: string) {
+    return this.discountItems.find((item) => item.id === discountItemId)?.nickname ?? 'Descuento eliminado';
   }
 }

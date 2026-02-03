@@ -13,11 +13,15 @@ import com.pickeat.domain.OrderId;
 import com.pickeat.domain.OrderItem;
 import com.pickeat.domain.OrderStatus;
 import com.pickeat.ports.out.OrderRepositoryPort;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.Map;
+import java.util.HashMap;
 
 /**
  * Adaptador de persistencia para ordenes.
@@ -25,6 +29,7 @@ import java.util.UUID;
 @Component
 public class OrderPersistenceAdapter implements OrderRepositoryPort {
     private final OrderJpaRepository repository;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     public OrderPersistenceAdapter(OrderJpaRepository repository) {
         this.repository = repository;
@@ -62,6 +67,7 @@ public class OrderPersistenceAdapter implements OrderRepositoryPort {
         entity.setTotalAmount(order.getTotalAmount());
         entity.setCurrencyCode(order.getCurrencyCode());
         entity.setCurrencySymbol(order.getCurrencySymbol());
+        entity.setBillingData(writeBillingData(order.getBillingData()));
         entity.setStatus(order.getStatus().name());
         entity.setActive(order.isActive());
         entity.setDeleted(order.isDeleted());
@@ -135,6 +141,7 @@ public class OrderPersistenceAdapter implements OrderRepositoryPort {
                 entity.getTotalAmount(),
                 entity.getCurrencyCode(),
                 entity.getCurrencySymbol(),
+                readBillingData(entity.getBillingData()),
                 parseStatus(entity.getStatus()),
                 entity.isActive(),
                 entity.isDeleted(),
@@ -157,6 +164,25 @@ public class OrderPersistenceAdapter implements OrderRepositoryPort {
             return OrderStatus.valueOf(status);
         } catch (IllegalArgumentException ignored) {
             return OrderStatus.CREADA;
+        }
+    }
+
+    private String writeBillingData(Map<String, String> billingData) {
+        try {
+            return objectMapper.writeValueAsString(billingData == null ? Map.of() : billingData);
+        } catch (Exception ignored) {
+            return "{}";
+        }
+    }
+
+    private Map<String, String> readBillingData(String raw) {
+        if (raw == null || raw.isBlank()) {
+            return new HashMap<>();
+        }
+        try {
+            return objectMapper.readValue(raw, new TypeReference<Map<String, String>>() {});
+        } catch (Exception ignored) {
+            return new HashMap<>();
         }
     }
 }

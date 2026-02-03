@@ -52,7 +52,8 @@ public class OrderRestMapper {
                 channelId,
                 tipType,
                 request.getTipValue(),
-                request.getTipEnabled()
+                request.getTipEnabled(),
+                request.getBillingData()
         );
     }
 
@@ -79,6 +80,7 @@ public class OrderRestMapper {
                 order.getTotalAmount(),
                 order.getCurrencyCode(),
                 order.getCurrencySymbol(),
+                order.getBillingData(),
                 order.getStatus().name(),
                 order.isActive(),
                 order.isDeleted(),

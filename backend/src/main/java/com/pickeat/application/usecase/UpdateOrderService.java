@@ -175,6 +175,7 @@ public class UpdateOrderService implements UpdateOrderUseCase {
         existing.setTotalAmount(totalAmount);
         existing.setCurrencyCode(config.getCurrencyCode());
         existing.setCurrencySymbol(config.getCurrencySymbol());
+        existing.setBillingData(draft.getBillingData());
         existing.setUpdatedAt(Instant.now());
         return orderRepository.save(existing);
     }

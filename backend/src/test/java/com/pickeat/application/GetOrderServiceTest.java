@@ -36,6 +36,7 @@ class GetOrderServiceTest {
                 BigDecimal.ZERO,
                 "USD",
                 "$",
+                java.util.Map.of(),
                 com.pickeat.domain.OrderStatus.CREADA,
                 true,
                 false,

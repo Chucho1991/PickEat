@@ -1,6 +1,7 @@
 package com.pickeat.domain;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Datos base para crear una orden.
@@ -13,6 +14,7 @@ public class OrderDraft {
     private TipType tipType;
     private java.math.BigDecimal tipValue;
     private Boolean tipEnabled;
+    private Map<String, String> billingData;
 
     public OrderDraft(MesaId mesaId,
                       List<OrderItemDraft> items,
@@ -20,7 +22,8 @@ public class OrderDraft {
                       OrderChannelId channelId,
                       TipType tipType,
                       java.math.BigDecimal tipValue,
-                      Boolean tipEnabled) {
+                      Boolean tipEnabled,
+                      Map<String, String> billingData) {
         this.mesaId = mesaId;
         this.items = items;
         this.discountItems = discountItems;
@@ -28,6 +31,7 @@ public class OrderDraft {
         this.tipType = tipType;
         this.tipValue = tipValue;
         this.tipEnabled = tipEnabled;
+        this.billingData = billingData;
     }
 
     public MesaId getMesaId() {
@@ -84,5 +88,13 @@ public class OrderDraft {
 
     public void setTipEnabled(Boolean tipEnabled) {
         this.tipEnabled = tipEnabled;
+    }
+
+    public Map<String, String> getBillingData() {
+        return billingData;
+    }
+
+    public void setBillingData(Map<String, String> billingData) {
+        this.billingData = billingData;
     }
 }

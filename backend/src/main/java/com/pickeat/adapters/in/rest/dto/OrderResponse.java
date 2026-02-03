@@ -3,6 +3,7 @@ package com.pickeat.adapters.in.rest.dto;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -22,6 +23,7 @@ public class OrderResponse {
     private BigDecimal totalAmount;
     private String currencyCode;
     private String currencySymbol;
+    private Map<String, String> billingData;
     private String status;
     private boolean activo;
     private boolean deleted;
@@ -40,6 +42,7 @@ public class OrderResponse {
                          BigDecimal totalAmount,
                          String currencyCode,
                          String currencySymbol,
+                         Map<String, String> billingData,
                          String status,
                          boolean activo,
                          boolean deleted,
@@ -57,6 +60,7 @@ public class OrderResponse {
         this.totalAmount = totalAmount;
         this.currencyCode = currencyCode;
         this.currencySymbol = currencySymbol;
+        this.billingData = billingData;
         this.status = status;
         this.activo = activo;
         this.deleted = deleted;
@@ -113,6 +117,10 @@ public class OrderResponse {
 
     public String getCurrencySymbol() {
         return currencySymbol;
+    }
+
+    public Map<String, String> getBillingData() {
+        return billingData;
     }
 
     public String getStatus() {

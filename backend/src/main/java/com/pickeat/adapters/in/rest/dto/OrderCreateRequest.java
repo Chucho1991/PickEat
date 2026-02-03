@@ -7,6 +7,7 @@ import jakarta.validation.constraints.DecimalMin;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -31,6 +32,7 @@ public class OrderCreateRequest {
     private BigDecimal tipValue;
 
     private Boolean tipEnabled;
+    private Map<String, String> billingData;
 
     public UUID getMesaId() {
         return mesaId;
@@ -86,5 +88,13 @@ public class OrderCreateRequest {
 
     public void setTipEnabled(Boolean tipEnabled) {
         this.tipEnabled = tipEnabled;
+    }
+
+    public Map<String, String> getBillingData() {
+        return billingData;
+    }
+
+    public void setBillingData(Map<String, String> billingData) {
+        this.billingData = billingData;
     }
 }

@@ -1154,17 +1154,27 @@ a {
   padding-top: 12px;
   display: grid;
   gap: 8px;
+  align-items: end;
+  text-align: right;
 }
 
 .total-row {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
+  gap: 24px;
+  min-width: 220px;
   font-size: 13px;
+}
+
+.total-row span:first-child {
+  color: var(--muted);
 }
 
 .total-main {
   font-size: 16px;
   font-weight: 700;
+  border-top: 1px solid var(--border);
+  padding-top: 8px;
 }
 
 @media (max-width: 1024px) {

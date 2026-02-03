@@ -150,7 +150,8 @@ public class CreateOrderService implements CreateOrderUseCase {
                 discountAmount,
                 totalAmount,
                 config.getCurrencyCode(),
-                config.getCurrencySymbol()
+                config.getCurrencySymbol(),
+                draft.getBillingData()
         );
         mesa.setOccupied(true);
         mesaRepository.save(mesa);

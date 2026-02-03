@@ -64,7 +64,8 @@ class CreateOrderServiceTest {
                 null,
                 null,
                 null,
-                true
+                true,
+                java.util.Map.of()
         );
         OrderChannel channel = new OrderChannel(
                 new OrderChannelId(UUID.randomUUID()),

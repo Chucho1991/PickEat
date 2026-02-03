@@ -62,6 +62,28 @@ export interface OrderDiscountItemRequest {
 }
 
 /**
+ * Campo configurable para datos de facturacion.
+ */
+export interface OrderBillingFieldDto {
+  id: string;
+  label: string;
+  active: boolean;
+  deleted: boolean;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/**
+ * Solicitud para crear o actualizar campo de facturacion.
+ */
+export interface OrderBillingFieldRequest {
+  label: string;
+  sortOrder?: number;
+  active?: boolean;
+}
+
+/**
  * Solicitud de creacion de ordenes.
  */
 export interface OrderCreateRequest {
@@ -72,6 +94,7 @@ export interface OrderCreateRequest {
   tipType?: 'PERCENTAGE' | 'FIXED';
   tipValue?: number;
   tipEnabled?: boolean;
+  billingData?: Record<string, string>;
 }
 
 /**
@@ -102,6 +125,7 @@ export interface OrderResponse {
   totalAmount: number;
   currencyCode: string;
   currencySymbol: string;
+  billingData?: Record<string, string>;
   status: OrderStatus;
   activo: boolean;
   deleted: boolean;
@@ -196,6 +220,45 @@ export class OrdersApiService {
       params = params.set('includeDeleted', 'true');
     }
     return this.http.get<OrderChannelDto[]>(`${this.baseUrl}/canales`, { params });
+  }
+
+  /**
+   * Lista campos de facturacion configurados.
+   */
+  listBillingFields(includeDeleted = false): Observable<OrderBillingFieldDto[]> {
+    let params = new HttpParams();
+    if (includeDeleted) {
+      params = params.set('includeDeleted', 'true');
+    }
+    return this.http.get<OrderBillingFieldDto[]>(`${this.baseUrl}/configuracion/facturacion`, { params });
+  }
+
+  /**
+   * Crea un campo de facturacion.
+   */
+  createBillingField(request: OrderBillingFieldRequest): Observable<OrderBillingFieldDto> {
+    return this.http.post<OrderBillingFieldDto>(`${this.baseUrl}/configuracion/facturacion`, request);
+  }
+
+  /**
+   * Actualiza un campo de facturacion.
+   */
+  updateBillingField(id: string, request: OrderBillingFieldRequest): Observable<OrderBillingFieldDto> {
+    return this.http.put<OrderBillingFieldDto>(`${this.baseUrl}/configuracion/facturacion/${id}`, request);
+  }
+
+  /**
+   * Elimina un campo de facturacion de forma logica.
+   */
+  deleteBillingField(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/configuracion/facturacion/${id}`);
+  }
+
+  /**
+   * Restaura un campo de facturacion eliminado.
+   */
+  restoreBillingField(id: string): Observable<OrderBillingFieldDto> {
+    return this.http.post<OrderBillingFieldDto>(`${this.baseUrl}/configuracion/facturacion/${id}/restore`, {});
   }
 
   /**

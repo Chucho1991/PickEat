@@ -62,6 +62,9 @@ public class OrderJpaEntity {
     @Column(name = "currency_symbol", nullable = false, length = 10)
     private String currencySymbol;
 
+    @Column(name = "billing_data", nullable = false, columnDefinition = "jsonb")
+    private String billingData;
+
     @Column(name = "status", nullable = false, length = 20)
     private String status;
 
@@ -179,6 +182,14 @@ public class OrderJpaEntity {
 
     public void setCurrencySymbol(String currencySymbol) {
         this.currencySymbol = currencySymbol;
+    }
+
+    public String getBillingData() {
+        return billingData;
+    }
+
+    public void setBillingData(String billingData) {
+        this.billingData = billingData;
     }
 
     public String getStatus() {

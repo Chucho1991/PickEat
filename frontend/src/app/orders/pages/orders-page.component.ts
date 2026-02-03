@@ -6,9 +6,17 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { MenuApiService, MenuItemDto } from '../../core/services/menu-api.service';
 import { DiscountsApiService, DiscountItemDto } from '../../core/services/discounts-api.service';
 import { MesasApiService, MesaDto } from '../../core/services/mesas-api.service';
-import { OrderChannelDto, OrderConfigDto, OrderResponse, OrdersApiService, OrderStatus } from '../../core/services/orders-api.service';
+import {
+  OrderBillingFieldDto,
+  OrderChannelDto,
+  OrderConfigDto,
+  OrderResponse,
+  OrdersApiService,
+  OrderStatus
+} from '../../core/services/orders-api.service';
 import { environment } from '../../../environments/environment';
 import { AuthService } from '../../core/services/auth.service';
+import { OrderVoucherService } from '../../core/services/order-voucher.service';
 
 interface OrderLine {
   menuItem: MenuItemDto;
@@ -315,7 +323,7 @@ interface DiscountLine {
           </div>
           <div class="total-row">
             <span>Descuento</span>
-            <span>{{ formatMoney(discountAmount) }}</span>
+            <span class="text-emerald-600 font-semibold">-{{ formatMoney(discountAmount) }}</span>
           </div>
           <div class="total-row">
             <span>{{ tipLabel }}</span>
@@ -324,6 +332,13 @@ interface DiscountLine {
           <div class="total-row total-main">
             <span>Total</span>
             <span>{{ formatMoney(totalAmount) }}</span>
+          </div>
+        </div>
+
+        <div class="list-item">
+          <div>
+            <p class="list-title">Descuentos posteriores</p>
+            <p class="list-subtitle">Pendiente de implementacion.</p>
           </div>
         </div>
       </aside>
@@ -339,6 +354,7 @@ export class OrdersPageComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private authService = inject(AuthService);
+  private voucherService = inject(OrderVoucherService);
 
   menuItems: MenuItemDto[] = [];
   filteredMenuItems: MenuItemDto[] = [];
@@ -350,6 +366,7 @@ export class OrdersPageComponent implements OnInit {
   selectedMesaId = '';
   selectedChannelId = '';
   channels: OrderChannelDto[] = [];
+  billingFields: OrderBillingFieldDto[] = [];
   selectedDishType = '';
   searchTerm = '';
   discountSearchTerm = '';
@@ -380,6 +397,7 @@ export class OrdersPageComponent implements OnInit {
     this.loadConfig();
     this.loadMesas();
     this.loadChannels();
+    this.loadBillingFields();
     this.loadMenuItems();
     this.loadDiscountItems();
     this.route.paramMap.subscribe((params) => {
@@ -535,6 +553,7 @@ export class OrdersPageComponent implements OnInit {
       this.ordersApi.update(this.editingOrderId, request).subscribe({
         next: (order) => {
           this.orderNumber = order.orderNumber;
+          this.generateVoucher(order);
           this.snackBar.open('Orden actualizada', 'Cerrar', { duration: 3000 });
           this.router.navigate(['/ordenes/lista']);
         },
@@ -545,6 +564,7 @@ export class OrdersPageComponent implements OnInit {
     this.ordersApi.create(request).subscribe({
       next: (order) => {
         this.orderNumber = order.orderNumber;
+        this.generateVoucher(order);
         this.snackBar.open('Orden creada', 'Cerrar', { duration: 3000 });
         this.loadMesas();
         this.resetOrder();
@@ -558,6 +578,10 @@ export class OrdersPageComponent implements OnInit {
    */
   get selectedMesaLabel() {
     return this.mesas.find((mesa) => mesa.id === this.selectedMesaId)?.description ?? '';
+  }
+
+  get selectedChannelLabel() {
+    return this.channels.find((channel) => channel.id === this.selectedChannelId)?.name ?? '';
   }
 
   /**
@@ -726,6 +750,16 @@ export class OrdersPageComponent implements OnInit {
         }
       },
       error: () => this.snackBar.open('No se pudo cargar canales', 'Cerrar', { duration: 3000 })
+    });
+  }
+
+  /**
+   * Carga los campos configurados para facturacion.
+   */
+  private loadBillingFields() {
+    this.ordersApi.listBillingFields(false).subscribe({
+      next: (fields) => (this.billingFields = fields),
+      error: () => this.snackBar.open('No se pudo cargar campos de facturacion', 'Cerrar', { duration: 3000 })
     });
   }
 
@@ -1000,5 +1034,44 @@ export class OrdersPageComponent implements OnInit {
 
   private round(value: number) {
     return Math.round(value * 100) / 100;
+  }
+
+  /**
+   * Genera el voucher PDF con la informacion actual.
+   *
+   * @param order orden guardada.
+   */
+  private generateVoucher(order: OrderResponse) {
+    const mesero = this.authService.getUser()?.nombres ?? 'Mesero';
+    const billingFields = this.billingFields
+      .filter((field) => field.active && !field.deleted)
+      .sort((a, b) => a.sortOrder - b.sortOrder)
+      .map((field) => field.label);
+
+    this.voucherService.generateVoucher({
+      date: new Date(),
+      orderNumber: this.orderNumberDisplay,
+      mesa: this.selectedMesaLabel || order.mesaId,
+      mesero,
+      canal: this.selectedChannelLabel || order.channelId,
+      currencySymbol: order.currencySymbol,
+      items: this.orderItems.map((line) => ({
+        name: line.menuItem.nickname,
+        unitPrice: line.unitPrice,
+        quantity: line.quantity,
+        total: line.total
+      })),
+      discountsApplied: this.orderDiscountItems.map((line) => ({
+        name: line.discountItem.nickname,
+        type: line.discountItem.discountType === 'PERCENTAGE' ? 'Porcentaje' : 'Fijo',
+        unitValue: this.formatDiscountLineUnit(line),
+        total: line.total
+      })),
+      subtotal: order.subtotal,
+      discountAmount: order.discountAmount,
+      tipAmount: order.tipAmount,
+      totalAmount: order.totalAmount,
+      billingFields
+    });
   }
 }

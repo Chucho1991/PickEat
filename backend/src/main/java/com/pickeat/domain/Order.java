@@ -3,6 +3,8 @@ package com.pickeat.domain;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 
 /**
  * Entidad de dominio para ordenes.
@@ -21,6 +23,7 @@ public class Order {
     private BigDecimal totalAmount;
     private String currencyCode;
     private String currencySymbol;
+    private Map<String, String> billingData;
     private OrderStatus status;
     private boolean active;
     private boolean deleted;
@@ -40,6 +43,7 @@ public class Order {
                  BigDecimal totalAmount,
                  String currencyCode,
                  String currencySymbol,
+                 Map<String, String> billingData,
                  OrderStatus status,
                  boolean active,
                  boolean deleted,
@@ -58,6 +62,7 @@ public class Order {
         this.totalAmount = totalAmount;
         this.currencyCode = currencyCode;
         this.currencySymbol = currencySymbol;
+        this.billingData = billingData == null ? new HashMap<>() : billingData;
         this.status = status;
         this.active = active;
         this.deleted = deleted;
@@ -75,7 +80,8 @@ public class Order {
                                   BigDecimal discountAmount,
                                   BigDecimal totalAmount,
                                   String currencyCode,
-                                  String currencySymbol) {
+                                  String currencySymbol,
+                                  Map<String, String> billingData) {
         Instant now = Instant.now();
         return new Order(
                 OrderId.newId(),
@@ -91,6 +97,7 @@ public class Order {
                 totalAmount,
                 currencyCode,
                 currencySymbol,
+                billingData,
                 OrderStatus.CREADA,
                 true,
                 false,
@@ -201,6 +208,14 @@ public class Order {
 
     public void setCurrencySymbol(String currencySymbol) {
         this.currencySymbol = currencySymbol;
+    }
+
+    public Map<String, String> getBillingData() {
+        return billingData;
+    }
+
+    public void setBillingData(Map<String, String> billingData) {
+        this.billingData = billingData == null ? new HashMap<>() : billingData;
     }
 
     public OrderStatus getStatus() {

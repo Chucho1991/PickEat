@@ -134,10 +134,6 @@ export class OrderVoucherService {
     }
 
     doc.setFontSize(10);
-    doc.text('Descuentos posteriores: Pendiente de implementacion.', marginX, y);
-    y += 16;
-
-    doc.setFontSize(10);
     doc.text('Datos para facturacion', marginX, y);
     y += 14;
     data.billingFields.forEach((label) => {

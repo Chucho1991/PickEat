@@ -138,10 +138,6 @@ import { OrderVoucherService } from '../../core/services/order-voucher.service';
                       <p class="detail-label">Descuento</p>
                       <p class="detail-value">{{ formatMoney(order.discountAmount, order.currencySymbol) }}</p>
                     </div>
-                    <div>
-                      <p class="detail-label">Descuentos posteriores</p>
-                      <p class="detail-value">Pendiente de implementacion.</p>
-                    </div>
                   </div>
                   <div class="order-status-actions" *ngIf="canManageStatus && !order.deleted">
                     <p class="detail-label">Cambiar estado</p>

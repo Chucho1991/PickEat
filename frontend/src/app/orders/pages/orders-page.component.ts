@@ -335,12 +335,6 @@ interface DiscountLine {
           </div>
         </div>
 
-        <div class="list-item">
-          <div>
-            <p class="list-title">Descuentos posteriores</p>
-            <p class="list-subtitle">Pendiente de implementacion.</p>
-          </div>
-        </div>
       </aside>
     </div>
   `

@@ -29,7 +29,7 @@ docker compose up --build
 - **Mesas**: CRUD con activacion, eliminacion logica y estado de ocupacion (libre/ocupada).
 - **Menu**: CRUD con activacion/eliminacion logica e indicador de aplica impuesto por producto.
 - **Ordenes**: creacion/edicion con calculo de totales, propina opcional (porcentaje o fija), canales de pedido, estados de orden y configuracion por parametros.
-- **Despachador**: rutas placeholder con "Coming soon".
+- **Despachador**: dashboard dinámico con comandas desde MongoDB, filtradas por retraso configurable.
 
 ## Gestion de usuarios
 - Solo roles **ADMINISTRADOR** y **SUPERADMINISTRADOR** pueden crear/listar usuarios.

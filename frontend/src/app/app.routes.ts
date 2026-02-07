@@ -8,7 +8,6 @@ import { UsersListPageComponent } from './users/pages/users-list-page.component'
 import { UserDetailPageComponent } from './users/pages/user-detail-page.component';
 import { UserFormPageComponent } from './users/pages/user-form-page.component';
 import { ProfilePageComponent } from './users/pages/profile-page.component';
-import { PlaceholderPageComponent } from './placeholders/pages/placeholder-page.component';
 import { MesasListPageComponent } from './mesas/pages/mesas-list-page.component';
 import { MesasFormPageComponent } from './mesas/pages/mesas-form-page.component';
 import { MenuListPageComponent } from './menu/pages/menu-list-page.component';
@@ -19,6 +18,7 @@ import { OrdersPageComponent } from './orders/pages/orders-page.component';
 import { OrdersListPageComponent } from './orders/pages/orders-list-page.component';
 import { OrdersShellPageComponent } from './orders/pages/orders-shell-page.component';
 import { OrdersConfigPageComponent } from './orders/pages/orders-config-page.component';
+import { DashboardDespachadorPageComponent } from './dashboard/pages/dashboard-despachador-page.component';
 
 /**
  * Definición de rutas principales de la aplicación.
@@ -96,8 +96,8 @@ export const routes: Routes = [
   },
   {
     path: 'despachador',
-    component: PlaceholderPageComponent,
-    canActivate: [AuthGuard],
-    data: { title: 'Despachador' }
+    component: DashboardDespachadorPageComponent,
+    canActivate: [AuthGuard, RoleGuard],
+    data: { title: 'Despachador', roles: ['SUPERADMINISTRADOR', 'ADMINISTRADOR', 'DESPACHADOR'] }
   }
 ];
